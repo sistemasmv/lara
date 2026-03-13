@@ -1,1 +1,344 @@
-1
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AppNail Pro - Agenda</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #FF6B9E; /* Rosa característico de apps de beleza */
+      --primary-dark: #E65A8D;
+      --bg: #F8F9FA;
+      --surface: #FFFFFF;
+      --text: #2D3748;
+      --text-light: #718096;
+      --border: #E2E8F0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+    /* Header e Dashboard Topo */
+    header { 
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+      color: white; 
+      padding: 30px 20px 50px 20px; 
+      border-bottom-left-radius: 25px; 
+      border-bottom-right-radius: 25px; 
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header-top h1 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.5px; }
+    .header-top i { font-size: 1.5rem; }
+
+    .dashboard { display: flex; gap: 15px; padding: 0 20px; margin-top: -30px; }
+    .card { flex: 1; background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+    .card h3 { font-size: 0.8rem; color: var(--text-light); font-weight: 500; text-transform: uppercase; margin-bottom: 5px; }
+    .card p { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+
+    /* Lista de Agendamentos */
+    .agenda { padding: 30px 20px; }
+    .agenda h2 { font-size: 1.1rem; margin-bottom: 15px; color: var(--text); }
+    
+    .appointment-item { 
+      background: var(--surface); 
+      border-radius: 16px; 
+      padding: 16px; 
+      margin-bottom: 12px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
+      border-left: 5px solid var(--primary); 
+    }
+    .app-info h4 { font-size: 1.05rem; margin-bottom: 4px; color: var(--text); }
+    .app-info p { font-size: 0.85rem; color: var(--text-light); display: flex; align-items: center; gap: 5px;}
+    .app-time { font-size: 0.95rem; font-weight: 700; color: var(--primary); background: #FFF0F5; padding: 6px 12px; border-radius: 10px; }
+
+    /* Botão Flutuante (FAB) */
+    .fab { 
+      position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; 
+      background: var(--primary); color: white; border: none; border-radius: 50%; 
+      font-size: 28px; box-shadow: 0 4px 15px rgba(255,107,158,0.4); 
+      cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 100;
+      transition: transform 0.2s;
+    }
+    .fab:active { transform: scale(0.95); }
+
+    /* Menu Inferior (Bottom Nav) */
+    .bottom-nav { 
+      position: fixed; bottom: 0; width: 100%; background: var(--surface); 
+      display: flex; justify-content: space-around; padding: 12px 0; 
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 90;
+    }
+    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-light); font-size: 0.75rem; text-decoration: none; gap: 4px;}
+    .nav-item.active { color: var(--primary); font-weight: 500;}
+    .nav-item i { font-size: 1.4rem; }
+
+    /* Modal de Novo Agendamento */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-end; }
+    .modal.active { display: flex; }
+    .modal-content { 
+      background: var(--surface); width: 100%; border-top-left-radius: 24px; border-top-right-radius: 24px; 
+      padding: 30px 25px; animation: slideUp 0.3s ease-out; 
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center; }
+    .modal-header h2 { font-size: 1.25rem; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-light); cursor: pointer; }
+
+    /* Formulário */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 6px; font-weight: 500;}
+    .form-group input, .form-group select { 
+      width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; 
+      font-size: 1rem; outline: none; background: var(--bg); color: var(--text);
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: var(--surface); }
+    .row { display: flex; gap: 15px; }
+    .row .form-group { flex: 1; }
+    
+    .btn-submit { 
+      width: 100%; background: var(--primary); color: white; border: none; 
+      padding: 16px; border-radius: 12px; font-size: 1.05rem; font-weight: 600; 
+      cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(255,107,158,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <h1>Olá, Manicure! 👋</h1>
+      <i class="ri-notification-3-line"></i>
+    </div>
+    <p style="font-size: 0.9rem; opacity: 0.9;">Sua agenda de hoje</p>
+  </header>
+
+  <section class="dashboard">
+    <div class="card">
+      <h3>Hoje</h3>
+      <p id="count-today">0</p>
+    </div>
+    <div class="card">
+      <h3>Previsão</h3>
+      <p id="income-today">R$ 0</p>
+    </div>
+  </section>
+
+  <section class="agenda">
+    <h2>Próximas Clientes</h2>
+    <div id="appointments-list">
+      <p style="text-align:center; color: #718096; margin-top: 20px;">Carregando agenda...</p>
+    </div>
+  </section>
+
+  <button class="fab" onclick="toggleModal(true)">
+    <i class="ri-add-line"></i>
+  </button>
+
+  <nav class="bottom-nav">
+    <a href="#" class="nav-item active"><i class="ri-calendar-todo-fill"></i>Agenda</a>
+    <a href="#" class="nav-item"><i class="ri-group-line"></i>Clientes</a>
+    <a href="#" class="nav-item"><i class="ri-wallet-3-line"></i>Caixa</a>
+    <a href="#" class="nav-item"><i class="ri-settings-4-line"></i>Ajustes</a>
+  </nav>
+
+  <div class="modal" id="modalAdd">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Novo Agendamento</h2>
+        <button class="close-btn" onclick="toggleModal(false)"><i class="ri-close-line"></i></button>
+      </div>
+      
+      <form id="formAgenda" onsubmit="salvarAgendamento(event)">
+        <div class="form-group">
+          <label>Nome da Cliente</label>
+          <input type="text" id="clienteNome" placeholder="Ex: Maria Silva" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Serviço</label>
+          <select id="servicoSelect" required>
+            <option value="">Carregando serviços...</option>
+            </select>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="dataApp" required>
+          </div>
+          <div class="form-group">
+            <label>Hora</label>
+            <input type="time" id="horaApp" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSalvar">Agendar Cliente</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 1. Configurações de Conexão
+    const supabaseUrl = 'https://cohrnjsjabjstkbtehwo.supabase.co';
+    const supabaseKey = 'sb_publishable_AovNgoH0aS-EO2yvBBP7cg_MHG6yxjV';
+    const gasWebhookUrl = 'https://script.google.com/macros/s/AKfycbzlsY6cy86-6d90NQrPCMliWcWR93csCSbuUj47VJePd2s_7jWwrwWc0misHARXAiPX/exec';
+
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Variável global para armazenar os serviços e pegar o preço facilmente
+    let servicosGlobais = [];
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarServicos();
+      carregarAgendamentos();
+    });
+
+    // Abrir/Fechar Modal
+    function toggleModal(show) {
+      document.getElementById('modalAdd').classList.toggle('active', show);
+    }
+
+    // 2. Buscar Serviços no Supabase para o Select
+    async function carregarServicos() {
+      const { data, error } = await supabase.from('servicos').select('*');
+      if (error) {
+        console.error('Erro ao buscar serviços', error);
+        return;
+      }
+      
+      servicosGlobais = data;
+      const select = document.getElementById('servicoSelect');
+      select.innerHTML = '<option value="">Selecione...</option>';
+      
+      data.forEach(servico => {
+        select.innerHTML += `<option value="${servico.id}">${servico.nome_servico} - R$ ${servico.preco}</option>`;
+      });
+    }
+
+    // 3. Buscar Agendamentos para a Tela Principal
+    async function carregarAgendamentos() {
+      // Usando inner join do Supabase para trazer nome do cliente e do serviço
+      const { data, error } = await supabase
+        .from('agendamentos')
+        .select(`
+          id, data_hora, status,
+          clientes (nome),
+          servicos (nome_servico, preco)
+        `)
+        .order('data_hora', { ascending: true });
+
+      if (error) {
+        document.getElementById('appointments-list').innerHTML = '<p>Erro ao carregar dados.</p>';
+        return;
+      }
+
+      renderizarAgendamentos(data || []);
+    }
+
+    function renderizarAgendamentos(agendamentos) {
+      const lista = document.getElementById('appointments-list');
+      lista.innerHTML = '';
+      
+      let totalCount = 0;
+      let totalIncome = 0;
+
+      if(agendamentos.length === 0) {
+        lista.innerHTML = '<p style="text-align:center; color:#718096;">Nenhum agendamento encontrado.</p>';
+      }
+
+      agendamentos.forEach(app => {
+        // Lógica simples de exibição
+        const dataApp = new Date(app.data_hora);
+        const horaFormatada = dataApp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        
+        totalCount++;
+        totalIncome += Number(app.servicos.preco);
+
+        lista.innerHTML += `
+          <div class="appointment-item">
+            <div class="app-info">
+              <h4>${app.clientes.nome}</h4>
+              <p><i class="ri-sparkling-line"></i> ${app.servicos.nome_servico}</p>
+            </div>
+            <div class="app-time">${horaFormatada}</div>
+          </div>
+        `;
+      });
+
+      // Atualiza o Dashboard
+      document.getElementById('count-today').innerText = totalCount;
+      document.getElementById('income-today').innerText = `R$ ${totalIncome.toFixed(2).replace('.',',')}`;
+    }
+
+    // 4. Salvar Novo Agendamento (Fluxo Completo)
+    async function salvarAgendamento(event) {
+      event.preventDefault();
+      
+      const btn = document.getElementById('btnSalvar');
+      btn.innerText = 'Salvando...';
+      btn.disabled = true;
+
+      const nomeCliente = document.getElementById('clienteNome').value;
+      const servicoId = document.getElementById('servicoSelect').value;
+      const data = document.getElementById('dataApp').value;
+      const hora = document.getElementById('horaApp').value;
+      const dataHoraIso = new Date(`${data}T${hora}:00`).toISOString();
+
+      try {
+        // Passo A: Criar cliente (para simplificar, criamos um novo sempre nesta demo)
+        const { data: clienteData, error: clienteError } = await supabase
+          .from('clientes')
+          .insert([{ nome: nomeCliente }])
+          .select()
+          .single();
+
+        if (clienteError) throw clienteError;
+
+        // Passo B: Criar o Agendamento
+        const { data: agendaData, error: agendaError } = await supabase
+          .from('agendamentos')
+          .insert([{ 
+            cliente_id: clienteData.id, 
+            servico_id: servicoId, 
+            data_hora: dataHoraIso 
+          }]);
+
+        if (agendaError) throw agendaError;
+
+        // Passo C: Disparar notificação para o Google Apps Script (Webhook em background)
+        fetch(gasWebhookUrl, {
+          method: 'POST',
+          mode: 'no-cors', // Evita bloqueios de CORS no GAS
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            acao: 'novo_agendamento',
+            cliente: nomeCliente,
+            data_hora: `${data} ${hora}`
+          })
+        });
+
+        // Sucesso!
+        alert('Agendado com sucesso!');
+        toggleModal(false);
+        document.getElementById('formAgenda').reset();
+        carregarAgendamentos(); // Recarrega a lista
+
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao salvar: ' + err.message);
+      } finally {
+        btn.innerText = 'Agendar Cliente';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
