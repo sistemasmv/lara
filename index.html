@@ -10,184 +10,225 @@
   
   <style>
     :root {
-      --primary: #FF6B9E;
-      --primary-dark: #E65A8D;
-      --bg: #F8F9FA;
+      --primary: #C53A7A; /* Magenta do print */
+      --primary-dark: #A32D63;
+      --bg: #F5F5F5;
       --surface: #FFFFFF;
-      --text: #2D3748;
-      --text-light: #718096;
-      --border: #E2E8F0;
+      --text: #333333;
+      --text-light: #888888;
+      --border: #E0E0E0;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; }
 
-    /* Header Padrão */
-    header { 
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
-      color: white; padding: 30px 20px 50px 20px; 
-      border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; 
-    }
-    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    
     /* Layout das Telas (SPA) */
-    .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+    .view-section { display: none; animation: fadeIn 0.2s ease-in-out; }
     .view-section.active-view { display: block; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Dashboard e Cards */
-    .dashboard { display: flex; gap: 15px; padding: 0 20px; margin-top: -30px; }
-    .card { flex: 1; background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
-    .card h3 { font-size: 0.8rem; color: var(--text-light); margin-bottom: 5px; }
-    .card p { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+    /* Header Padrão (Usado em Clientes, Serviços e Opções) */
+    .default-header { background: var(--primary); color: white; padding: 20px; text-align: center; font-size: 1.2rem; font-weight: 600; }
 
-    /* Listas */
-    .list-container { padding: 30px 20px; }
-    .list-container h2 { font-size: 1.1rem; margin-bottom: 15px; }
+    /* Header Específico da Agenda (Igual ao Print) */
+    .agenda-header { background: var(--primary); color: white; padding-top: 20px; }
+    .agenda-title { text-align: center; font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; }
+    .date-selector { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 15px; font-weight: 500; }
+    .date-selector i { font-size: 1.5rem; cursor: pointer; }
+    
+    /* Carrossel de Datas */
+    .date-ribbon { display: flex; overflow-x: auto; padding: 0 15px 15px 15px; gap: 10px; scrollbar-width: none; }
+    .date-ribbon::-webkit-scrollbar { display: none; }
+    .date-box { 
+      background: var(--surface); color: var(--text); min-width: 65px; padding: 10px 5px; 
+      border-radius: 12px; text-align: center; font-size: 0.85rem; cursor: pointer;
+      border: 1px solid var(--border); transition: 0.2s;
+    }
+    .date-box.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
+    .date-box .dia-semana { display: block; font-size: 0.75rem; margin-bottom: 4px; text-transform: uppercase; }
+    .date-box .dia-mes { display: block; font-size: 1.1rem; }
+
+    /* Listas e Cards */
+    .list-container { padding: 20px; }
     .list-item { 
-      background: var(--surface); border-radius: 16px; padding: 16px; margin-bottom: 12px; 
+      background: var(--surface); border-radius: 12px; padding: 15px; margin-bottom: 12px; 
       display: flex; justify-content: space-between; align-items: center; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-left: 5px solid var(--primary); 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid var(--primary);
     }
-    .list-info h4 { font-size: 1.05rem; margin-bottom: 4px; }
+    .list-info h4 { font-size: 1.05rem; margin-bottom: 4px; color: var(--text); }
     .list-info p { font-size: 0.85rem; color: var(--text-light); }
-    .badge { font-size: 0.95rem; font-weight: 700; color: var(--primary); background: #FFF0F5; padding: 6px 12px; border-radius: 10px; }
+    .badge { font-size: 0.95rem; font-weight: 700; color: var(--primary); background: #FFF0F5; padding: 6px 12px; border-radius: 8px; }
 
-    /* Menu Inferior e FAB */
-    .fab { 
-      position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; 
-      background: var(--primary); color: white; border: none; border-radius: 50%; 
-      font-size: 28px; box-shadow: 0 4px 15px rgba(255,107,158,0.4); cursor: pointer; z-index: 100;
-    }
+    /* Empty State (Sem agendamentos) */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+    .empty-state i { font-size: 4rem; color: #D0D0D0; margin-bottom: 15px; display: block; }
+    .empty-state h3 { color: var(--text); margin-bottom: 8px; font-size: 1.1rem;}
+    .empty-state p { margin-bottom: 25px; font-size: 0.9rem;}
+    .btn-empty { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%;}
+
+    /* Menu Inferior */
     .bottom-nav { 
       position: fixed; bottom: 0; width: 100%; background: var(--surface); 
-      display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -4px 15px rgba(0,0,0,0.03); z-index: 90;
+      display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 90;
     }
-    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-light); font-size: 0.75rem; text-decoration: none; cursor: pointer; }
-    .nav-item.active { color: var(--primary); font-weight: 600; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-light); font-size: 0.7rem; text-decoration: none; cursor: pointer; gap: 4px; }
+    .nav-item.active { color: var(--primary); }
     .nav-item i { font-size: 1.4rem; pointer-events: none; }
 
-    /* Modais e Formulários */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-end; }
+    /* Botão Flutuante (FAB) */
+    .fab { 
+      position: fixed; bottom: 85px; right: 20px; width: 56px; height: 56px; 
+      background: var(--primary); color: white; border: none; border-radius: 50%; 
+      font-size: 24px; box-shadow: 0 4px 10px rgba(197, 58, 122, 0.4); cursor: pointer; z-index: 100;
+      display: flex; justify-content: center; align-items: center;
+    }
+
+    /* Modais */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; }
     .modal.active { display: flex; }
-    .modal-content { background: var(--surface); width: 100%; border-radius: 24px 24px 0 0; padding: 30px 25px; }
-    .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; }
+    .modal-content { background: var(--surface); width: 100%; border-radius: 20px 20px 0 0; padding: 25px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .close-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-light); cursor: pointer; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 6px; }
-    .form-group input, .form-group select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 1rem; }
-    .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    
+    /* Forms */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 5px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); }
+    .row { display: flex; gap: 10px; }
+    .row .form-group { flex: 1; }
+    .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
   </style>
 </head>
 <body>
 
   <div id="view-agenda" class="view-section active-view">
-    <header>
-      <div class="header-top">
-        <h1>Olá, Manicure! 👋</h1>
-        <i class="ri-notification-3-line"></i>
+    <header class="agenda-header">
+      <div class="agenda-title">Agenda</div>
+      <div class="date-selector">
+        <i class="ri-arrow-left-s-line" onclick="mudarDia(-1)"></i>
+        <span id="header-date-text">Hoje, Selecionando...</span>
+        <div><i class="ri-calendar-line"></i> <i class="ri-arrow-right-s-line" onclick="mudarDia(1)"></i></div>
       </div>
-      <p style="font-size: 0.9rem; opacity: 0.9;">Sua agenda de hoje</p>
+      <div class="date-ribbon" id="date-ribbon">
+        </div>
     </header>
-    <section class="dashboard">
-      <div class="card"><h3>Hoje</h3><p id="count-today">0</p></div>
-      <div class="card"><h3>Previsão</h3><p id="income-today">R$ 0</p></div>
-    </section>
-    <section class="list-container">
-      <h2>Próximas Clientes</h2>
-      <div id="appointments-list"><p style="color: #718096;">Carregando...</p></div>
-    </section>
+
+    <section class="list-container" id="appointments-container">
+      </section>
   </div>
 
   <div id="view-clientes" class="view-section">
-    <header style="padding-bottom: 20px; border-radius: 0 0 25px 25px;">
-      <div class="header-top">
-        <h1>Meus Clientes 💖</h1>
-      </div>
-    </header>
-    <section class="list-container">
-      <div id="clientes-list"><p style="color: #718096;">Carregando clientes...</p></div>
+    <div class="default-header">Meus Clientes</div>
+    <section class="list-container" id="clientes-list">
+      <p style="text-align:center; color: var(--text-light);">Buscando clientes...</p>
     </section>
   </div>
 
-  <div id="view-caixa" class="view-section">
-    <header style="padding-bottom: 20px; border-radius: 0 0 25px 25px;">
-      <div class="header-top">
-        <h1>Fluxo de Caixa 💰</h1>
-      </div>
-    </header>
-    <section class="list-container" style="text-align: center; margin-top: 50px; color: var(--text-light);">
-      <i class="ri-bar-chart-2-line" style="font-size: 4rem; color: var(--border);"></i>
-      <h2 style="margin-top: 15px;">Em construção</h2>
-      <p>Aqui o GAS vai ler o Supabase e montar os gráficos do mês.</p>
+  <div id="view-servicos" class="view-section">
+    <div class="default-header">Meus Serviços</div>
+    <section class="list-container" id="servicos-list">
+      <p style="text-align:center; color: var(--text-light);">Buscando serviços...</p>
     </section>
   </div>
 
-  <div id="view-ajustes" class="view-section">
-    <header style="padding-bottom: 20px; border-radius: 0 0 25px 25px;">
-      <div class="header-top">
-        <h1>Configurações ⚙️</h1>
-      </div>
-    </header>
+  <div id="view-opcoes" class="view-section">
+    <div class="default-header">Opções</div>
     <section class="list-container">
       <div class="list-item">
-        <div class="list-info"><h4>Webhook do GAS</h4><p>Status: Conectado</p></div>
+        <div class="list-info"><h4>Sistema</h4><p>Versão 1.0.0</p></div>
         <i class="ri-check-line" style="color: green; font-size: 1.5rem;"></i>
       </div>
     </section>
   </div>
 
-  <button class="fab" id="mainFab" onclick="toggleModal(true)">
+  <button class="fab" id="mainFab" onclick="abrirModalContextual()">
     <i class="ri-add-line"></i>
   </button>
 
   <nav class="bottom-nav">
-    <div class="nav-item active" onclick="mudarTela('agenda', this)"><i class="ri-calendar-todo-fill"></i>Agenda</div>
     <div class="nav-item" onclick="mudarTela('clientes', this)"><i class="ri-group-line"></i>Clientes</div>
-    <div class="nav-item" onclick="mudarTela('caixa', this)"><i class="ri-wallet-3-line"></i>Caixa</div>
-    <div class="nav-item" onclick="mudarTela('ajustes', this)"><i class="ri-settings-4-line"></i>Ajustes</div>
+    <div class="nav-item active" onclick="mudarTela('agenda', this)"><i class="ri-calendar-event-line"></i>Agenda</div>
+    <div class="nav-item" onclick="mudarTela('servicos', this)"><i class="ri-sparkling-line"></i>Serviços</div>
+    <div class="nav-item" onclick="mudarTela('opcoes', this)"><i class="ri-settings-4-line"></i>Opções</div>
   </nav>
 
-  <div class="modal" id="modalAdd">
+  <div class="modal" id="modalAgendamento">
     <div class="modal-content">
       <div class="modal-header">
         <h2>Novo Agendamento</h2>
-        <button class="close-btn" onclick="toggleModal(false)"><i class="ri-close-line"></i></button>
+        <button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button>
       </div>
-      <form id="formAgenda" onsubmit="salvarAgendamento(event)">
+      <form onsubmit="salvarAgendamento(event)">
         <div class="form-group">
-          <label>Nome da Cliente</label>
-          <input type="text" id="clienteNome" required>
+          <label>Cliente (Selecione ou cadastre primeiro)</label>
+          <select id="agendaClienteSelect" required>
+            <option value="">Carregando clientes...</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Serviço</label>
-          <select id="servicoSelect" required></select>
+          <select id="agendaServicoSelect" required>
+            <option value="">Carregando serviços...</option>
+          </select>
         </div>
-        <div style="display: flex; gap: 15px;">
-          <div class="form-group" style="flex: 1;"><label>Data</label><input type="date" id="dataApp" required></div>
-          <div class="form-group" style="flex: 1;"><label>Hora</label><input type="time" id="horaApp" required></div>
+        <div class="row">
+          <div class="form-group"><label>Data</label><input type="date" id="agendaData" required></div>
+          <div class="form-group"><label>Hora</label><input type="time" id="agendaHora" required></div>
         </div>
-        <button type="submit" class="btn-submit" id="btnSalvar">Agendar Cliente</button>
+        <button type="submit" class="btn-submit" id="btnSalvarAgendamento">Agendar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modalCliente">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Novo Cliente</h2>
+        <button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button>
+      </div>
+      <form onsubmit="salvarCliente(event)">
+        <div class="form-group"><label>Nome</label><input type="text" id="cliNome" required></div>
+        <div class="form-group"><label>WhatsApp</label><input type="tel" id="cliWhats" placeholder="(00) 00000-0000"></div>
+        <button type="submit" class="btn-submit" id="btnSalvarCliente">Salvar Cliente</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modalServico">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Novo Serviço</h2>
+        <button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button>
+      </div>
+      <form onsubmit="salvarServico(event)">
+        <div class="form-group"><label>Nome do Serviço</label><input type="text" id="servNome" placeholder="Ex: Manicure Simples" required></div>
+        <div class="row">
+          <div class="form-group"><label>Preço (R$)</label><input type="number" step="0.01" id="servPreco" required></div>
+          <div class="form-group"><label>Duração (Min)</label><input type="number" id="servTempo" value="60" required></div>
+        </div>
+        <button type="submit" class="btn-submit" id="btnSalvarServico">Salvar Serviço</button>
       </form>
     </div>
   </div>
 
   <script>
-    // 1. Configurações corrigidas (variável 'db' em vez de 'supabase')
     const supabaseUrl = 'https://cohrnjsjabjstkbtehwo.supabase.co';
     const supabaseKey = 'sb_publishable_AovNgoH0aS-EO2yvBBP7cg_MHG6yxjV';
-    const gasWebhookUrl = 'https://script.google.com/macros/s/AKfycbzlsY6cy86-6d90NQrPCMliWcWR93csCSbuUj47VJePd2s_7jWwrwWc0misHARXAiPX/exec';
-    
-    // O erro estava aqui. Agora usamos 'db' para não conflitar com a biblioteca importada.
     const db = supabase.createClient(supabaseUrl, supabaseKey);
 
+    let telaAtual = 'agenda';
+    let dataFiltroAtual = new Date(); // Data que está selecionada no carrossel
+
     document.addEventListener('DOMContentLoaded', () => {
-      carregarServicos();
-      carregarAgendamentos();
+      renderizarCarrosselDatas();
+      carregarClientes(); // Preenche listas e dropdowns
+      carregarServicos(); // Preenche listas e dropdowns
+      carregarAgendamentosPorData(dataFiltroAtual);
     });
 
-    // === NAVEGAÇÃO SPA ===
+    // === 1. NAVEGAÇÃO E MODAIS ===
     function mudarTela(telaId, elementoClicado) {
+      telaAtual = telaId;
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       
@@ -195,108 +236,191 @@
       elementoClicado.classList.add('active');
 
       const fab = document.getElementById('mainFab');
-      fab.style.display = (telaId === 'caixa' || telaId === 'ajustes') ? 'none' : 'flex';
+      fab.style.display = (telaId === 'opcoes') ? 'none' : 'flex';
 
+      if (telaId === 'agenda') carregarAgendamentosPorData(dataFiltroAtual);
       if (telaId === 'clientes') carregarClientes();
+      if (telaId === 'servicos') carregarServicos();
     }
 
-    function toggleModal(show) { 
-      document.getElementById('modalAdd').classList.toggle('active', show); 
-    }
-
-    // === BANCO DE DADOS ===
-    async function carregarServicos() {
-      const { data, error } = await db.from('servicos').select('*');
-      if(error) console.error("Erro ao carregar serviços:", error);
-      
-      const select = document.getElementById('servicoSelect');
-      select.innerHTML = '<option value="">Selecione...</option>';
-      (data || []).forEach(s => select.innerHTML += `<option value="${s.id}">${s.nome_servico} - R$ ${s.preco}</option>`);
-    }
-
-    async function carregarAgendamentos() {
-      const { data, error } = await db.from('agendamentos').select('id, data_hora, status, clientes(nome), servicos(nome_servico, preco)').order('data_hora', { ascending: true });
-      if(error) console.error("Erro ao carregar agendamentos:", error);
-
-      const lista = document.getElementById('appointments-list');
-      lista.innerHTML = '';
-      let totalCount = 0; let totalIncome = 0;
-
-      if (!data || data.length === 0) {
-        lista.innerHTML = '<p style="text-align:center; color:#718096;">Nenhum agendamento.</p>';
-      } else {
-        data.forEach(app => {
-          const horaFormatada = new Date(app.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-          totalCount++; totalIncome += Number(app.servicos.preco);
-          lista.innerHTML += `
-            <div class="list-item">
-              <div class="list-info"><h4>${app.clientes.nome}</h4><p><i class="ri-sparkling-line"></i> ${app.servicos.nome_servico}</p></div>
-              <div class="badge">${horaFormatada}</div>
-            </div>`;
-        });
+    function abrirModalContextual() {
+      if(telaAtual === 'agenda') {
+        // Preenche a data do modal com a data selecionada no carrossel
+        document.getElementById('agendaData').value = dataFiltroAtual.toISOString().split('T')[0];
+        document.getElementById('modalAgendamento').classList.add('active');
       }
-      document.getElementById('count-today').innerText = totalCount;
-      document.getElementById('income-today').innerText = `R$ ${totalIncome.toFixed(2).replace('.',',')}`;
+      else if(telaAtual === 'clientes') document.getElementById('modalCliente').classList.add('active');
+      else if(telaAtual === 'servicos') document.getElementById('modalServico').classList.add('active');
     }
 
+    function fecharModais() {
+      document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+    }
+
+    // === 2. LÓGICA DO CARROSSEL DE DATAS (Igual ao Print) ===
+    function renderizarCarrosselDatas() {
+      const ribbon = document.getElementById('date-ribbon');
+      ribbon.innerHTML = '';
+      
+      const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+      // Atualiza texto do Header (Ex: Hoje, 13 de Março)
+      const dataHoje = new Date();
+      let prefixo = (dataFiltroAtual.toDateString() === dataHoje.toDateString()) ? "Hoje, " : "";
+      document.getElementById('header-date-text').innerText = `${prefixo}${dataFiltroAtual.getDate()} de ${meses[dataFiltroAtual.getMonth()]}`;
+
+      // Gera 15 dias (7 para trás, hoje, 7 para frente)
+      for (let i = -7; i <= 7; i++) {
+        let d = new Date(dataFiltroAtual);
+        d.setDate(d.getDate() + i);
+        
+        const isSelected = (i === 0);
+        const dia = d.getDate().toString().padStart(2, '0');
+        const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+        const nomeDia = diasSemana[d.getDay()];
+
+        const box = document.createElement('div');
+        box.className = `date-box ${isSelected ? 'active' : ''}`;
+        box.innerHTML = `<span class="dia-semana">${nomeDia}</span><span class="dia-mes">${dia}/${mes}</span>`;
+        
+        box.onclick = () => {
+          dataFiltroAtual = new Date(d);
+          renderizarCarrosselDatas();
+          carregarAgendamentosPorData(dataFiltroAtual);
+        };
+        ribbon.appendChild(box);
+      }
+      
+      // Centraliza a rolagem na data ativa
+      setTimeout(() => {
+        const activeBox = ribbon.querySelector('.active');
+        if(activeBox) activeBox.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 50);
+    }
+
+    function mudarDia(delta) {
+      dataFiltroAtual.setDate(dataFiltroAtual.getDate() + delta);
+      renderizarCarrosselDatas();
+      carregarAgendamentosPorData(dataFiltroAtual);
+    }
+
+    // === 3. FUNÇÕES DE BANCO DE DADOS (SUPABASE) ===
+
+    // CLIENTES
     async function carregarClientes() {
+      const { data } = await db.from('clientes').select('*').order('nome');
+      
+      // Atualiza lista na tela de clientes
       const lista = document.getElementById('clientes-list');
-      lista.innerHTML = '<p style="text-align:center;">Buscando...</p>';
-      
-      const { data, error } = await db.from('clientes').select('*').order('nome', { ascending: true });
-      
-      if (error || !data || data.length === 0) {
-        lista.innerHTML = '<p style="text-align:center; color:#718096;">Nenhum cliente cadastrado ainda.</p>';
-        return;
-      }
-
       lista.innerHTML = '';
-      data.forEach(cliente => {
-        lista.innerHTML += `
-          <div class="list-item">
-            <div class="list-info">
-              <h4>${cliente.nome}</h4>
-              <p>Cliente desde: ${new Date(cliente.criado_em).toLocaleDateString('pt-BR')}</p>
-            </div>
-            <i class="ri-whatsapp-line" style="color: #25D366; font-size: 1.5rem;"></i>
-          </div>
-        `;
+      if(!data || data.length === 0) lista.innerHTML = '<p style="text-align:center;">Nenhum cliente.</p>';
+      
+      // Atualiza o Dropdown no modal de Agendamento
+      const select = document.getElementById('agendaClienteSelect');
+      select.innerHTML = '<option value="">Selecione a cliente...</option>';
+
+      (data || []).forEach(c => {
+        lista.innerHTML += `<div class="list-item"><div class="list-info"><h4>${c.nome}</h4><p>${c.whatsapp || 'Sem número'}</p></div></div>`;
+        select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
       });
     }
 
-    async function salvarAgendamento(event) {
-      event.preventDefault();
-      const btn = document.getElementById('btnSalvar'); 
-      btn.innerText = 'Salvando...'; 
-      btn.disabled = true;
-
+    async function salvarCliente(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSalvarCliente'); btn.innerText = 'Salvando...'; btn.disabled = true;
       try {
-        const nomeCli = document.getElementById('clienteNome').value;
-        const servId = document.getElementById('servicoSelect').value;
-        const dataHoraIso = new Date(`${document.getElementById('dataApp').value}T${document.getElementById('horaApp').value}:00`).toISOString();
+        const { error } = await db.from('clientes').insert([{ nome: document.getElementById('cliNome').value, whatsapp: document.getElementById('cliWhats').value }]);
+        if(error) throw error;
+        fecharModais(); e.target.reset(); carregarClientes(); alert('Cliente salva!');
+      } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar Cliente'; btn.disabled = false; }
+    }
 
-        // 1. Salva o cliente
-        const { data: cliente, error: errCli } = await db.from('clientes').insert([{ nome: nomeCli }]).select().single();
-        if (errCli) throw new Error("Erro ao criar cliente: " + errCli.message);
+    // SERVIÇOS
+    async function carregarServicos() {
+      const { data } = await db.from('servicos').select('*').order('nome_servico');
+      
+      const lista = document.getElementById('servicos-list');
+      lista.innerHTML = '';
+      if(!data || data.length === 0) lista.innerHTML = '<p style="text-align:center;">Nenhum serviço.</p>';
 
-        // 2. Salva o agendamento
-        const { error: errAgend } = await db.from('agendamentos').insert([{ cliente_id: cliente.id, servico_id: servId, data_hora: dataHoraIso }]);
-        if (errAgend) throw new Error("Erro ao agendar: " + errAgend.message);
-        
-        // 3. Dispara Webhook
-        fetch(gasWebhookUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'novo_agendamento', cliente: cliente.nome }) }).catch(e => console.log("Webhook call:", e));
-        
-        alert('Agendamento salvo com sucesso!'); 
-        toggleModal(false); 
-        document.getElementById('formAgenda').reset(); 
-        carregarAgendamentos(); 
-        carregarClientes();
-      } catch (err) { 
-        alert(err.message); 
-      } finally { 
-        btn.innerText = 'Agendar Cliente'; 
-        btn.disabled = false; 
+      const select = document.getElementById('agendaServicoSelect');
+      select.innerHTML = '<option value="">Selecione o serviço...</option>';
+
+      (data || []).forEach(s => {
+        lista.innerHTML += `<div class="list-item"><div class="list-info"><h4>${s.nome_servico}</h4><p>${s.duracao_minutos} min</p></div><div class="badge">R$ ${s.preco}</div></div>`;
+        select.innerHTML += `<option value="${s.id}">${s.nome_servico} - R$ ${s.preco}</option>`;
+      });
+    }
+
+    async function salvarServico(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSalvarServico'); btn.innerText = 'Salvando...'; btn.disabled = true;
+      try {
+        const { error } = await db.from('servicos').insert([{ nome_servico: document.getElementById('servNome').value, preco: document.getElementById('servPreco').value, duracao_minutos: document.getElementById('servTempo').value }]);
+        if(error) throw error;
+        fecharModais(); e.target.reset(); carregarServicos(); alert('Serviço salvo!');
+      } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar Serviço'; btn.disabled = false; }
+    }
+
+    // AGENDAMENTOS
+    async function carregarAgendamentosPorData(dataBusca) {
+      const container = document.getElementById('appointments-container');
+      container.innerHTML = '<p style="text-align:center;">Buscando...</p>';
+
+      // Cria início e fim do dia selecionado para filtrar no banco
+      const inicioDia = new Date(dataBusca); inicioDia.setHours(0,0,0,0);
+      const fimDia = new Date(dataBusca); fimDia.setHours(23,59,59,999);
+
+      const { data, error } = await db.from('agendamentos')
+        .select('id, data_hora, clientes(nome), servicos(nome_servico, preco)')
+        .gte('data_hora', inicioDia.toISOString())
+        .lte('data_hora', fimDia.toISOString())
+        .order('data_hora', { ascending: true });
+
+      if (error || !data || data.length === 0) {
+        // Exibe a tela vazia igual ao print
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="ri-calendar-todo-line"></i>
+            <h3>Crie seu primeiro agendamento</h3>
+            <p>Não há horários marcados para este dia.</p>
+            <button class="btn-empty" onclick="abrirModalContextual()"><i class="ri-add-line"></i> Novo Agendamento</button>
+          </div>
+        `;
+        return;
       }
+
+      container.innerHTML = '';
+      data.forEach(app => {
+        const horaFormatada = new Date(app.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        container.innerHTML += `
+          <div class="list-item">
+            <div class="list-info">
+              <h4>${app.clientes.nome}</h4>
+              <p><i class="ri-sparkling-line"></i> ${app.servicos.nome_servico}</p>
+            </div>
+            <div style="text-align: right;">
+              <div class="badge" style="margin-bottom: 5px;">${horaFormatada}</div>
+              <span style="font-size: 0.8rem; color: var(--text-light);">R$ ${app.servicos.preco}</span>
+            </div>
+          </div>`;
+      });
+    }
+
+    async function salvarAgendamento(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSalvarAgendamento'); btn.innerText = 'Salvando...'; btn.disabled = true;
+      try {
+        const cliId = document.getElementById('agendaClienteSelect').value;
+        const servId = document.getElementById('agendaServicoSelect').value;
+        const dataHoraIso = new Date(`${document.getElementById('agendaData').value}T${document.getElementById('agendaHora').value}:00`).toISOString();
+
+        const { error } = await db.from('agendamentos').insert([{ cliente_id: cliId, servico_id: servId, data_hora: dataHoraIso }]);
+        if (error) throw error;
+        
+        fecharModais(); e.target.reset(); carregarAgendamentosPorData(dataFiltroAtual); alert('Agendado com sucesso!');
+      } catch(err) { alert(err.message); } finally { btn.innerText = 'Agendar'; btn.disabled = false; }
     }
   </script>
 </body>
