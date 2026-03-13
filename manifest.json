@@ -1,7 +1,7 @@
 {
-  "name": "Lara Nails",
-  "short_name": "Lara Nails",
-  "start_url": "./",
+  "name": "Lara App",
+  "short_name": "Lara App",
+  "start_url": "./"
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
