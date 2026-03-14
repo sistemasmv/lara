@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Nail Pro - Agenda</title>
+  <title>AppNail Pro - Agenda</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
-  <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="logo.png">
   <meta name="theme-color" content="#C53A7A"> 
-  
   
   <style>
     :root {
@@ -55,7 +53,7 @@
     .list-info p { font-size: 0.85rem; color: var(--text-light); }
     .badge { font-size: 0.95rem; font-weight: 700; color: var(--primary); background: #FFF0F5; padding: 6px 12px; border-radius: 8px; display: inline-block; margin-bottom: 5px; }
 
-    /* Ações do Agendamento (Botões na Agenda) */
+    /* Ações do Agendamento */
     .agenda-actions { display: flex; gap: 8px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 12px; }
     .btn-action { flex: 1; padding: 8px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-align: center; cursor: pointer; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.2s; text-decoration: none; }
     .btn-action i { font-size: 1.2rem; }
@@ -134,7 +132,7 @@
     <section class="list-container">
       <div class="list-item">
         <div class="list-item-header">
-            <div class="list-info"><h4>Sistema</h4><p>Versão 1.2.1 (Correção Botões)</p></div>
+            <div class="list-info"><h4>Sistema</h4><p>Versão 1.2.2 (Correção de Fuso Horário)</p></div>
             <i class="ri-check-line" style="color: green; font-size: 1.5rem;"></i>
         </div>
       </div>
@@ -199,7 +197,6 @@
             <div class="form-group" style="margin-bottom:0;"><label>Qtd. Pé</label><input type="number" id="cliPe" value="0" min="0"></div>
           </div>
         </div>
-
         <button type="submit" class="btn-submit" id="btnSalvarCliente">Salvar Cliente</button>
       </form>
     </div>
@@ -227,6 +224,15 @@
     let telaAtual = 'agenda';
     let dataFiltroAtual = new Date(); 
     let clientesGlobais = []; 
+
+    // === FUNÇÃO DE FUSO HORÁRIO SEGURO ===
+    // Formata a data garantindo que seja o dia EXATO que você está vendo na tela (Evita o bug das 21h)
+    function obterDataLocalString(dataObj) {
+      const ano = dataObj.getFullYear();
+      const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+      const dia = String(dataObj.getDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       renderizarCarrosselDatas();
@@ -276,7 +282,8 @@
     // === MODAIS ===
     function abrirModalContextual() {
       if(telaAtual === 'agenda') {
-        document.getElementById('agendaData').value = dataFiltroAtual.toISOString().split('T')[0];
+        // Correção aplicada aqui!
+        document.getElementById('agendaData').value = obterDataLocalString(dataFiltroAtual);
         document.getElementById('modalAgendamento').classList.add('active');
       }
       else if(telaAtual === 'clientes') { prepararModalCliente(); document.getElementById('modalCliente').classList.add('active'); }
@@ -376,7 +383,7 @@
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar'; btn.disabled = false; }
     }
 
-    // === AGENDAMENTOS (Incluindo Reagendar e Cancelar) ===
+    // === AGENDAMENTOS ===
     async function carregarAgendamentosPorData(dataBusca) {
       const container = document.getElementById('appointments-container');
       container.innerHTML = '<p style="text-align:center;">Buscando...</p>';
@@ -400,10 +407,9 @@
       data.forEach(app => {
         const horaFormatada = new Date(app.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         
-        // 1. Logica do Whatsapp e número limpo
         let linkWa = '#';
         let numLimpo = '';
-        if(app.clientes.whatsapp) {
+        if(app.clientes && app.clientes.whatsapp) {
           numLimpo = app.clientes.whatsapp.replace(/\D/g, '');
           if(numLimpo.length >= 10) {
             const dataExtenso = dataBusca.toLocaleDateString('pt-BR');
@@ -412,7 +418,6 @@
           }
         }
 
-        // 2. Lógica para construir o botão Whatsapp com segurança
         let btnAvisarHTML = '';
         if (linkWa !== '#') {
           btnAvisarHTML = `<a href="${linkWa}" target="_blank" class="btn-action btn-action-wa"><i class="ri-whatsapp-line"></i> Avisar</a>`;
@@ -420,13 +425,11 @@
           btnAvisarHTML = `<button class="btn-action btn-action-wa" onclick="alert('Cliente sem WhatsApp cadastrado.')" style="opacity: 0.6;"><i class="ri-whatsapp-line"></i> Sem Whats</button>`;
         }
 
-        // 3. Segurança para nomes com aspas simples (ex: D'arc)
-        const nomeSeguro = app.clientes.nome.replace(/'/g, "&apos;");
+        const nomeSeguro = app.clientes ? app.clientes.nome.replace(/'/g, "&apos;") : 'Cliente Excluído';
 
-        // 4. Lógica de Pacotes
         let htmlPacoteAgenda = '';
-        let saldoMao = app.clientes.saldo_mao || 0;
-        let saldoPe = app.clientes.saldo_pe || 0;
+        let saldoMao = app.clientes ? (app.clientes.saldo_mao || 0) : 0;
+        let saldoPe = app.clientes ? (app.clientes.saldo_pe || 0) : 0;
         if (saldoMao > 0 || saldoPe > 0) {
           htmlPacoteAgenda = `
             <div class="pacote-card">
@@ -437,17 +440,16 @@
           `;
         }
 
-        // 5. Card Final com a Barra de Ações
         container.innerHTML += `
           <div class="list-item">
             <div class="list-item-header">
               <div class="list-info">
-                <h4>${app.clientes.nome}</h4>
-                <p><i class="ri-sparkling-line"></i> ${app.servicos.nome_servico}</p>
+                <h4>${nomeSeguro}</h4>
+                <p><i class="ri-sparkling-line"></i> ${app.servicos ? app.servicos.nome_servico : 'Serviço Excluído'}</p>
               </div>
               <div style="text-align: right;">
                 <div class="badge" style="margin-bottom: 5px;">${horaFormatada}</div><br>
-                <span style="font-size: 0.8rem; color: var(--text-light);">R$ ${app.servicos.preco}</span>
+                <span style="font-size: 0.8rem; color: var(--text-light);">R$ ${app.servicos ? app.servicos.preco : '0'}</span>
               </div>
             </div>
             
@@ -485,7 +487,8 @@
       document.getElementById('reagendarWhats').value = whats;
       document.getElementById('reagendarNomeCliente').innerText = `Reagendando: ${nomeCliente}`;
       
-      document.getElementById('reagendarData').value = dataFiltroAtual.toISOString().split('T')[0];
+      // Correção aplicada aqui também!
+      document.getElementById('reagendarData').value = obterDataLocalString(dataFiltroAtual);
       
       document.getElementById('modalReagendamento').classList.add('active');
     }
