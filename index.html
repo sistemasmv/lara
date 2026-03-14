@@ -8,10 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
-  <script>
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 800) {}
-  </script>
-  
   <link rel="icon" type="image/png" href="logo.png">
   <meta name="theme-color" content="#C53A7A"> 
   
@@ -57,16 +53,21 @@
     .list-info p { font-size: 0.85rem; color: var(--text-light); }
     .badge { font-size: 0.95rem; font-weight: 700; color: var(--primary); background: #FFF0F5; padding: 6px 12px; border-radius: 8px; display: inline-block; margin-bottom: 5px; }
 
+    /* Ações do Agendamento (Botões na Agenda) */
+    .agenda-actions { display: flex; gap: 8px; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .btn-action { flex: 1; padding: 8px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-align: center; cursor: pointer; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.2s; text-decoration: none; }
+    .btn-action i { font-size: 1.2rem; }
+    .btn-action:active { transform: scale(0.95); }
+    .btn-action-wa { background: #E8F9F0; color: #25D366; }
+    .btn-action-edit { background: #EBF4FF; color: #3182CE; }
+    .btn-action-del { background: #FFF5F5; color: #E53E3E; }
+
     /* Sistema de Pacotes */
     .pacote-card { margin-top: 12px; background: #FFF0F5; padding: 10px 12px; border-radius: 8px; width: 100%; border: 1px dashed var(--primary); }
     .pacote-header { font-size: 0.8rem; color: var(--primary); font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
     .pacote-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 5px; }
     .btn-usar { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(197, 58, 122, 0.2); transition: 0.2s; }
     .btn-usar:active { transform: scale(0.95); }
-
-    /* Botão WhatsApp */
-    .btn-whatsapp { background: #25D366; color: white; text-decoration: none; padding: 5px 8px; border-radius: 6px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3); transition: 0.2s; }
-    .btn-whatsapp:active { transform: scale(0.95); }
 
     /* Empty State */
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
@@ -96,7 +97,7 @@
     .row { display: flex; gap: 10px; }
     .row .form-group { flex: 1; }
     .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
-    .btn-edit { background: #f0f0f0; border: none; padding: 8px; border-radius: 8px; color: var(--primary); cursor: pointer; font-size: 1.2rem; }
+    .btn-edit-cli { background: #f0f0f0; border: none; padding: 8px; border-radius: 8px; color: var(--primary); cursor: pointer; font-size: 1.2rem; }
   </style>
 </head>
 <body>
@@ -131,7 +132,7 @@
     <section class="list-container">
       <div class="list-item">
         <div class="list-item-header">
-            <div class="list-info"><h4>Sistema</h4><p>Versão 1.1.0 (Com Pacotes)</p></div>
+            <div class="list-info"><h4>Sistema</h4><p>Versão 1.2.0 (Reagendamentos)</p></div>
             <i class="ri-check-line" style="color: green; font-size: 1.5rem;"></i>
         </div>
       </div>
@@ -158,6 +159,22 @@
           <div class="form-group"><label>Hora</label><input type="time" id="agendaHora" required></div>
         </div>
         <button type="submit" class="btn-submit" id="btnSalvarAgendamento">Agendar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modalReagendamento">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Reagendar Horário</h2><button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button></div>
+      <p id="reagendarNomeCliente" style="margin-bottom: 15px; font-weight: 600; color: var(--primary);"></p>
+      <form onsubmit="salvarReagendamento(event)">
+        <input type="hidden" id="reagendarAppId">
+        <input type="hidden" id="reagendarWhats">
+        <div class="row">
+          <div class="form-group"><label>Nova Data</label><input type="date" id="reagendarData" required></div>
+          <div class="form-group"><label>Nova Hora</label><input type="time" id="reagendarHora" required></div>
+        </div>
+        <button type="submit" class="btn-submit" style="background: #3182CE;" id="btnSalvarReagendamento">Atualizar e Avisar no WhatsApp</button>
       </form>
     </div>
   </div>
@@ -260,13 +277,8 @@
         document.getElementById('agendaData').value = dataFiltroAtual.toISOString().split('T')[0];
         document.getElementById('modalAgendamento').classList.add('active');
       }
-      else if(telaAtual === 'clientes') {
-        prepararModalCliente(); 
-        document.getElementById('modalCliente').classList.add('active');
-      }
-      else if(telaAtual === 'servicos') {
-        document.getElementById('modalServico').classList.add('active');
-      }
+      else if(telaAtual === 'clientes') { prepararModalCliente(); document.getElementById('modalCliente').classList.add('active'); }
+      else if(telaAtual === 'servicos') { document.getElementById('modalServico').classList.add('active'); }
     }
     function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
 
@@ -283,27 +295,13 @@
       if(clientesGlobais.length === 0) { lista.innerHTML = '<p style="text-align:center;">Nenhum cliente.</p>'; return; }
 
       clientesGlobais.forEach(c => {
-        let saldoMao = c.saldo_mao || 0;
-        let saldoPe = c.saldo_pe || 0;
-        let htmlPacote = '';
-
-        if(saldoMao > 0 || saldoPe > 0) {
-          htmlPacote = `
-            <div class="pacote-card">
-              <div class="pacote-header"><i class="ri-vip-diamond-line"></i> Pacote Ativo</div>
-              ${saldoMao > 0 ? `<div class="pacote-item"><span>💅 Mão restam: <b>${saldoMao}</b></span> <button class="btn-usar" onclick="usarPacote('${c.id}', 'mao', ${saldoMao})">- Usar 1</button></div>` : ''}
-              ${saldoPe > 0 ? `<div class="pacote-item"><span>👣 Pé restam: <b>${saldoPe}</b></span> <button class="btn-usar" onclick="usarPacote('${c.id}', 'pe', ${saldoPe})">- Usar 1</button></div>` : ''}
-            </div>
-          `;
-        }
-
+        // Agora na aba clientes mostra apenas Nome, Whats e Botão Editar
         lista.innerHTML += `
           <div class="list-item">
-            <div class="list-item-header">
+            <div class="list-item-header" style="align-items: center;">
               <div class="list-info"><h4>${c.nome}</h4><p>${c.whatsapp || 'Sem número'}</p></div>
-              <button class="btn-edit" onclick="prepararModalCliente('${c.id}')"><i class="ri-edit-2-line"></i></button>
+              <button class="btn-edit-cli" onclick="prepararModalCliente('${c.id}')"><i class="ri-edit-2-line"></i></button>
             </div>
-            ${htmlPacote}
           </div>`;
         select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
       });
@@ -312,7 +310,6 @@
     function prepararModalCliente(id = null) {
       document.getElementById('modalClienteTitle').innerText = id ? "Editar Cliente" : "Novo Cliente";
       document.getElementById('cliId').value = id || "";
-      
       if(id) {
         const cliente = clientesGlobais.find(c => c.id == id);
         if(cliente) {
@@ -322,10 +319,8 @@
           document.getElementById('cliPe').value = cliente.saldo_pe || 0;
         }
       } else {
-        document.getElementById('cliNome').value = "";
-        document.getElementById('cliWhats').value = "";
-        document.getElementById('cliMao').value = "0";
-        document.getElementById('cliPe').value = "0";
+        document.getElementById('cliNome').value = ""; document.getElementById('cliWhats').value = "";
+        document.getElementById('cliMao').value = "0"; document.getElementById('cliPe').value = "0";
       }
       if(id) document.getElementById('modalCliente').classList.add('active'); 
     }
@@ -340,11 +335,10 @@
         saldo_mao: parseInt(document.getElementById('cliMao').value) || 0,
         saldo_pe: parseInt(document.getElementById('cliPe').value) || 0
       };
-
       try {
-        if(cliId) { await db.from('clientes').update(dadosCliente).eq('id', cliId); } 
-        else { await db.from('clientes').insert([dadosCliente]); }
-        fecharModais(); carregarClientes(); carregarAgendamentosPorData(dataFiltroAtual); // Atualiza os dois
+        if(cliId) await db.from('clientes').update(dadosCliente).eq('id', cliId); 
+        else await db.from('clientes').insert([dadosCliente]);
+        fecharModais(); carregarClientes(); carregarAgendamentosPorData(dataFiltroAtual);
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar Cliente'; btn.disabled = false; }
     }
 
@@ -353,9 +347,8 @@
         try {
           const coluna = tipo === 'mao' ? 'saldo_mao' : 'saldo_pe';
           await db.from('clientes').update({ [coluna]: saldoAtual - 1 }).eq('id', id);
-          
           carregarClientes(); 
-          carregarAgendamentosPorData(dataFiltroAtual); // Atualiza a agenda também para sumir a cartelinha lá!
+          carregarAgendamentosPorData(dataFiltroAtual); 
         } catch(e) { alert("Erro ao usar pacote: " + e.message); }
       }
     }
@@ -382,7 +375,7 @@
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar'; btn.disabled = false; }
     }
 
-    // === AGENDAMENTOS ===
+    // === AGENDAMENTOS (Incluindo Reagendar e Cancelar) ===
     async function carregarAgendamentosPorData(dataBusca) {
       const container = document.getElementById('appointments-container');
       container.innerHTML = '<p style="text-align:center;">Buscando...</p>';
@@ -390,7 +383,6 @@
       const inicioDia = new Date(dataBusca); inicioDia.setHours(0,0,0,0);
       const fimDia = new Date(dataBusca); fimDia.setHours(23,59,59,999);
 
-      // NOVIDADE AQUI: Buscando id, whatsapp e saldos do cliente na mesma consulta
       const { data, error } = await db.from('agendamentos')
         .select('id, data_hora, clientes(id, nome, whatsapp, saldo_mao, saldo_pe), servicos(nome_servico, preco)')
         .gte('data_hora', inicioDia.toISOString())
@@ -407,39 +399,36 @@
       data.forEach(app => {
         const horaFormatada = new Date(app.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         
-        // 1. Gera botão do WhatsApp inteligente
-        let btnWhatsApp = '';
+        let linkWa = '#';
+        let numLimpo = '';
         if(app.clientes.whatsapp) {
-          const numLimpo = app.clientes.whatsapp.replace(/\D/g, '');
-          if(numLimpo.length >= 10) { // Garante que seja um número válido
+          numLimpo = app.clientes.whatsapp.replace(/\D/g, '');
+          if(numLimpo.length >= 10) {
             const dataExtenso = dataBusca.toLocaleDateString('pt-BR');
-            // A mensagem já vai pré-pronta:
             const msg = encodeURIComponent(`Olá ${app.clientes.nome}, seu horário está agendado para ${dataExtenso} às ${horaFormatada}. Te aguardo!`);
-            btnWhatsApp = `<a href="https://wa.me/55${numLimpo}?text=${msg}" target="_blank" class="btn-whatsapp"><i class="ri-whatsapp-line"></i></a>`;
+            linkWa = `https://wa.me/55${numLimpo}?text=${msg}`;
           }
         }
 
-        // 2. Verifica se a cliente tem pacote ativo para exibir na agenda
         let htmlPacoteAgenda = '';
         let saldoMao = app.clientes.saldo_mao || 0;
         let saldoPe = app.clientes.saldo_pe || 0;
-
         if (saldoMao > 0 || saldoPe > 0) {
           htmlPacoteAgenda = `
             <div class="pacote-card">
-              <div class="pacote-header"><i class="ri-vip-diamond-line"></i> Pacote da Cliente Ativo</div>
+              <div class="pacote-header"><i class="ri-vip-diamond-line"></i> Pacote Ativo</div>
               ${saldoMao > 0 ? `<div class="pacote-item"><span>💅 Mão restam: <b>${saldoMao}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'mao', ${saldoMao})">- Usar 1</button></div>` : ''}
               ${saldoPe > 0 ? `<div class="pacote-item"><span>👣 Pé restam: <b>${saldoPe}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'pe', ${saldoPe})">- Usar 1</button></div>` : ''}
             </div>
           `;
         }
 
-        // 3. Monta o Card final da agenda
+        // Card com a nova Barra de Ações embaixo
         container.innerHTML += `
           <div class="list-item">
             <div class="list-item-header">
               <div class="list-info">
-                <h4>${app.clientes.nome} ${btnWhatsApp}</h4>
+                <h4>${app.clientes.nome}</h4>
                 <p><i class="ri-sparkling-line"></i> ${app.servicos.nome_servico}</p>
               </div>
               <div style="text-align: right;">
@@ -447,7 +436,20 @@
                 <span style="font-size: 0.8rem; color: var(--text-light);">R$ ${app.servicos.preco}</span>
               </div>
             </div>
+            
             ${htmlPacoteAgenda}
+
+            <div class="agenda-actions">
+              <a href="${linkWa !== '#' ? linkWa : 'javascript:alert(\\'Cliente sem WhatsApp\\')'}" target="${linkWa !== '#' ? '_blank' : ''}" class="btn-action btn-action-wa">
+                <i class="ri-whatsapp-line"></i> Avisar
+              </a>
+              <button class="btn-action btn-action-edit" onclick="abrirModalReagendar('${app.id}', '${app.clientes.nome}', '${numLimpo}')">
+                <i class="ri-calendar-event-line"></i> Reagendar
+              </button>
+              <button class="btn-action btn-action-del" onclick="cancelarAgendamento('${app.id}')">
+                <i class="ri-delete-bin-line"></i> Cancelar
+              </button>
+            </div>
           </div>`;
       });
     }
@@ -463,6 +465,58 @@
         await db.from('agendamentos').insert([{ cliente_id: cliId, servico_id: servId, data_hora: dataHoraIso }]);
         fecharModais(); e.target.reset(); carregarAgendamentosPorData(dataFiltroAtual);
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Agendar'; btn.disabled = false; }
+    }
+
+    // === REAGENDAR ===
+    function abrirModalReagendar(idApp, nomeCliente, whats) {
+      document.getElementById('reagendarAppId').value = idApp;
+      document.getElementById('reagendarWhats').value = whats;
+      document.getElementById('reagendarNomeCliente').innerText = `Reagendando: ${nomeCliente}`;
+      
+      // Coloca a data selecionada hoje como sugestão
+      document.getElementById('reagendarData').value = dataFiltroAtual.toISOString().split('T')[0];
+      
+      document.getElementById('modalReagendamento').classList.add('active');
+    }
+
+    async function salvarReagendamento(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSalvarReagendamento'); btn.innerText = 'Atualizando...'; btn.disabled = true;
+      
+      const idApp = document.getElementById('reagendarAppId').value;
+      const whats = document.getElementById('reagendarWhats').value;
+      const novaData = document.getElementById('reagendarData').value;
+      const novaHora = document.getElementById('reagendarHora').value;
+      const dataHoraIso = new Date(`${novaData}T${novaHora}:00`).toISOString();
+
+      try {
+        // Atualiza no banco
+        await db.from('agendamentos').update({ data_hora: dataHoraIso }).eq('id', idApp);
+        
+        fecharModais();
+        e.target.reset();
+        carregarAgendamentosPorData(dataFiltroAtual); // Recarrega a tela
+
+        // Avisa no WhatsApp se tiver número
+        if(whats && whats.length >= 10) {
+          const dataExtenso = new Date(`${novaData}T${novaHora}:00`).toLocaleDateString('pt-BR');
+          const msg = encodeURIComponent(`Olá! Seu horário foi reagendado com sucesso para ${dataExtenso} às ${novaHora}. Te aguardo!`);
+          window.open(`https://wa.me/55${whats}?text=${msg}`, '_blank');
+        } else {
+          alert('Horário reagendado com sucesso! (Cliente sem WhatsApp)');
+        }
+
+      } catch(err) { alert(err.message); } finally { btn.innerText = 'Atualizar e Avisar no WhatsApp'; btn.disabled = false; }
+    }
+
+    // === CANCELAR ===
+    async function cancelarAgendamento(idApp) {
+      if(confirm('Tem certeza que deseja cancelar e apagar este agendamento?')) {
+        try {
+          await db.from('agendamentos').delete().eq('id', idApp);
+          carregarAgendamentosPorData(dataFiltroAtual); // Recarrega a lista
+        } catch(err) { alert("Erro ao cancelar: " + err.message); }
+      }
     }
   </script>
 </body>
