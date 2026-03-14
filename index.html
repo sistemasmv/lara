@@ -68,7 +68,7 @@
     .btn-action-edit { background: #EBF4FF; color: #3182CE; }
     .btn-action-del { background: #FFF5F5; color: #E53E3E; }
     
-    .btn-action-ok { background: #E8F9F0; color: #25D366; width: 100%; border: 1px solid #25D366; flex-direction: row; justify-content: center; padding: 10px; font-size: 0.9rem;} /* Maior destaque */
+    .btn-action-ok { background: #E8F9F0; color: #25D366; width: 100%; border: 1px solid #25D366; flex-direction: row; justify-content: center; padding: 10px; font-size: 0.9rem;}
 
     /* Sistema de Pacotes */
     .pacote-card { margin-top: 12px; background: #FFF0F5; padding: 10px 12px; border-radius: 8px; width: 100%; border: 1px dashed var(--primary); }
@@ -136,7 +136,6 @@
     .fin-actions, .serv-actions { display: flex; gap: 8px; align-items: center; }
     .btn-mini { background: #f0f0f0; border: none; padding: 6px; border-radius: 6px; color: var(--primary); cursor: pointer; font-size: 1rem; }
     .btn-mini.del { color: var(--danger); }
-    
   </style>
 </head>
 <body>
@@ -195,7 +194,7 @@
     <section class="list-container">
       <div class="list-item">
         <div class="list-item-header">
-            <div class="list-info"><h4>Sistema</h4><p>Versão 1.4.0 (Completa & Restaurada)</p></div>
+            <div class="list-info"><h4>Sistema</h4><p>Versão 1.5.0 (Edições Inclusas)</p></div>
             <i class="ri-check-line" style="color: green; font-size: 1.5rem;"></i>
         </div>
       </div>
@@ -220,7 +219,6 @@
   <div class="modal" id="modalAgendamento">
     <div class="modal-content"><div class="modal-header"><h2>Novo Agendamento</h2><button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button></div>
       <form onsubmit="salvarAgendamento(event)">
-        <input type="hidden" id="servId">
         <div class="form-group"><label>Cliente</label><select id="agendaClienteSelect" required></select></div>
         <div class="form-group"><label>Serviço</label><select id="agendaServicoSelect" required></select></div>
         <div class="row"><div class="form-group"><label>Data</label><input type="date" id="agendaData" required></div><div class="form-group"><label>Hora</label><input type="time" id="agendaHora" required></div></div>
@@ -263,8 +261,9 @@
   </div>
 
   <div class="modal" id="modalServico">
-    <div class="modal-content"><div class="modal-header"><h2>Novo Serviço</h2><button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button></div>
+    <div class="modal-content"><div class="modal-header"><h2>Serviço</h2><button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button></div>
       <form onsubmit="salvarServico(event)">
+        <input type="hidden" id="servId">
         <div class="form-group"><label>Nome do Serviço</label><input type="text" id="servNome" required></div>
         <div class="row">
           <div class="form-group"><label>Preço (R$)</label><input type="number" step="0.01" id="servPreco" required></div>
@@ -378,23 +377,23 @@
         document.getElementById('agendaData').value = obterDataLocalString(dataFiltroAtual);
         document.getElementById('modalAgendamento').classList.add('active');
       }
-      else if(telaAtual === 'clientes') { prepararModalCliente(); document.getElementById('modalCliente').classList.add('active'); }
-      else if(telaAtual === 'servicos') { document.getElementById('modalServico').classList.add('active'); }
+      else if(telaAtual === 'clientes') { 
+        prepararModalCliente(); 
+        document.getElementById('modalCliente').classList.add('active'); 
+      }
+      else if(telaAtual === 'servicos') { 
+        // Garante que clica em "+" abra o modal VAZIO e não de edição
+        document.getElementById('servId').value = "";
+        document.getElementById('servNome').value = "";
+        document.getElementById('servPreco').value = "";
+        document.getElementById('servTempo').value = "60";
+        document.getElementById('modalServico').classList.add('active'); 
+      }
     }
-    function abrirModalFin(tipo) {
-      document.getElementById('finId').value = ''; // Garante que é um NOVO lançamento
-      document.getElementById('finTipo').value = tipo;
-      document.getElementById('modalFinTitle').innerText = tipo === 'entrada' ? 'Nova Receita (+)' : 'Nova Despesa (-)';
-      document.getElementById('btnSalvarFin').style.background = tipo === 'entrada' ? 'var(--success)' : 'var(--danger)';
-      document.getElementById('finDataForm').value = obterDataLocalString(new Date());
-      document.getElementById('finDesc').value = ''; 
-      document.getElementById('finValor').value = '';
-      document.getElementById('modalFinanceiro').classList.add('active');
-    }
-    
+
     function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
 
-    // === CLIENTES & PACOTES (COMPLETAMENTE RESTAURADO) ===
+    // === CLIENTES & PACOTES ===
     async function carregarClientes() {
       const { data } = await db.from('clientes').select('*').order('nome');
       clientesGlobais = data || []; 
@@ -407,7 +406,6 @@
       if(clientesGlobais.length === 0) { lista.innerHTML = '<p style="text-align:center;">Nenhum cliente.</p>'; return; }
 
       clientesGlobais.forEach(c => {
-        // Restaurei o botão de Edição de Cliente!
         lista.innerHTML += `
           <div class="list-item">
             <div class="list-item-header" style="align-items: center;">
@@ -464,7 +462,6 @@
       }
     }
 
-    // === SERVIÇOS (RESTAURADO) ===
     // === SERVIÇOS (COM EDIÇÃO) ===
     async function carregarServicos() {
       const { data } = await db.from('servicos').select('*').order('nome_servico');
@@ -508,7 +505,7 @@
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar'; btn.disabled = false; }
     }
 
-    // === AGENDAMENTOS E AÇÕES (WHATSAPP, REAGENDAR, CANCELAR, CONCLUIR) ===
+    // === AGENDAMENTOS E AÇÕES ===
     async function carregarAgendamentosPorData(dataBusca) {
       const container = document.getElementById('appointments-container');
       container.innerHTML = '<p style="text-align:center;">Buscando...</p>';
@@ -534,7 +531,6 @@
         const servNome = app.servicos ? app.servicos.nome_servico : '';
         const servPreco = app.servicos ? app.servicos.preco : 0;
 
-        // 1. Lógica do Whatsapp RESTAURADA
         let linkWa = '#';
         let numLimpo = '';
         if(app.clientes && app.clientes.whatsapp) {
@@ -553,7 +549,6 @@
           btnAvisarHTML = `<button class="btn-action btn-action-wa" onclick="alert('Cliente sem WhatsApp cadastrado.')" style="opacity: 0.6;"><i class="ri-whatsapp-line"></i> Sem Whats</button>`;
         }
 
-        // 2. Lógica de Pacotes RESTAURADA
         let htmlPacoteAgenda = '';
         let saldoMao = app.clientes ? (app.clientes.saldo_mao || 0) : 0;
         let saldoPe = app.clientes ? (app.clientes.saldo_pe || 0) : 0;
@@ -567,7 +562,6 @@
           `;
         }
 
-        // 3. Montagem dos Botões de Ação
         let htmlAcoes = '';
         if (!isConcluido) {
           htmlAcoes = `
@@ -590,7 +584,6 @@
           htmlAcoes = `<div style="margin-top: 10px; color: var(--success); font-weight: bold; font-size: 0.85rem;"><i class="ri-check-double-line"></i> Serviço Concluído e Lançado no Caixa</div>`;
         }
 
-        // 4. Renderização do Card Final
         container.innerHTML += `
           <div class="list-item ${isConcluido ? 'concluido' : ''}">
             <div class="list-item-header">
@@ -616,7 +609,7 @@
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Agendar'; btn.disabled = false; }
     }
 
-    // === REAGENDAR ===
+    // === REAGENDAR E CANCELAR AGENDA ===
     function abrirModalReagendar(idApp, nomeCliente, whats) {
       document.getElementById('reagendarAppId').value = idApp;
       document.getElementById('reagendarWhats').value = whats;
@@ -648,7 +641,6 @@
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Atualizar e Avisar'; btn.disabled = false; }
     }
 
-    // === CANCELAR ===
     async function cancelarAgendamento(idApp) {
       if(confirm('Tem certeza que deseja cancelar e apagar este agendamento?')) {
         try { await db.from('agendamentos').delete().eq('id', idApp); carregarAgendamentosPorData(dataFiltroAtual); } 
@@ -656,7 +648,6 @@
       }
     }
 
-    // === CONCLUIR E FINANCEIRO ===
     async function concluirAgendamento(idApp, nomeCli, nomeServ, valor) {
       if(confirm('Marcar como concluído e lançar valor no caixa?')) {
         try {
@@ -689,15 +680,19 @@
       }
     }
 
-   
-      const saldo = totEntrada - totSaida;
-      document.getElementById('finTotEntrada').innerText = `R$ ${totEntrada.toFixed(2).replace('.',',')}`;
-      document.getElementById('finTotSaida').innerText = `R$ ${totSaida.toFixed(2).replace('.',',')}`;
-      document.getElementById('finTotSaldo').innerText = `R$ ${saldo.toFixed(2).replace('.',',')}`;
+    // === CONTROLE DE MODAL DO CAIXA E FINANCEIRO ===
+    function abrirModalFin(tipo) {
+      document.getElementById('finId').value = ''; // Garante que é um NOVO lançamento
+      document.getElementById('finTipo').value = tipo;
+      document.getElementById('modalFinTitle').innerText = tipo === 'entrada' ? 'Nova Receita (+)' : 'Nova Despesa (-)';
+      document.getElementById('btnSalvarFin').style.background = tipo === 'entrada' ? 'var(--success)' : 'var(--danger)';
+      document.getElementById('finDataForm').value = obterDataLocalString(new Date());
+      document.getElementById('finDesc').value = ''; 
+      document.getElementById('finValor').value = '';
+      document.getElementById('modalFinanceiro').classList.add('active');
     }
 
-  
-function prepararModalFinEdit(id, tipo, desc, valor, dataMov) {
+    function prepararModalFinEdit(id, tipo, desc, valor, dataMov) {
       document.getElementById('finId').value = id;
       document.getElementById('finTipo').value = tipo;
       document.getElementById('modalFinTitle').innerText = 'Editar Movimentação';
@@ -715,7 +710,6 @@ function prepararModalFinEdit(id, tipo, desc, valor, dataMov) {
       }
     }
 
-    // === CARREGAR O FINANCEIRO COM BOTÕES ===
     async function carregarFinanceiro() {
       const dataInicio = document.getElementById('finDataInicio').value;
       const dataFim = document.getElementById('finDataFim').value;
@@ -771,12 +765,6 @@ function prepararModalFinEdit(id, tipo, desc, valor, dataMov) {
         fecharModais(); e.target.reset(); document.getElementById('finId').value = ''; carregarFinanceiro();
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar Lançamento'; btn.disabled = false; }
     }
-  </script>
-</body>
-</html>
-
-
-    
   </script>
 </body>
 </html>
