@@ -131,6 +131,12 @@
     .row .form-group { flex: 1; }
     .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
     .btn-edit-cli { background: #f0f0f0; border: none; padding: 8px; border-radius: 8px; color: var(--primary); cursor: pointer; font-size: 1.2rem; }
+
+    /* Estilos para botões de editar/excluir menores */
+    .fin-actions, .serv-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-mini { background: #f0f0f0; border: none; padding: 6px; border-radius: 6px; color: var(--primary); cursor: pointer; font-size: 1rem; }
+    .btn-mini.del { color: var(--danger); }
+    
   </style>
 </head>
 <body>
@@ -214,6 +220,7 @@
   <div class="modal" id="modalAgendamento">
     <div class="modal-content"><div class="modal-header"><h2>Novo Agendamento</h2><button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button></div>
       <form onsubmit="salvarAgendamento(event)">
+        <input type="hidden" id="servId">
         <div class="form-group"><label>Cliente</label><select id="agendaClienteSelect" required></select></div>
         <div class="form-group"><label>Serviço</label><select id="agendaServicoSelect" required></select></div>
         <div class="row"><div class="form-group"><label>Data</label><input type="date" id="agendaData" required></div><div class="form-group"><label>Hora</label><input type="time" id="agendaHora" required></div></div>
@@ -275,6 +282,7 @@
         <button class="close-btn" onclick="fecharModais()"><i class="ri-close-line"></i></button>
       </div>
       <form onsubmit="salvarTransacao(event)">
+        <input type="hidden" id="finId">
         <input type="hidden" id="finTipo">
         <div class="form-group"><label>Descrição</label><input type="text" id="finDesc" placeholder="Ex: Compra de Esmaltes, Luz, etc." required></div>
         <div class="row">
@@ -374,12 +382,16 @@
       else if(telaAtual === 'servicos') { document.getElementById('modalServico').classList.add('active'); }
     }
     function abrirModalFin(tipo) {
+      document.getElementById('finId').value = ''; // Garante que é um NOVO lançamento
       document.getElementById('finTipo').value = tipo;
       document.getElementById('modalFinTitle').innerText = tipo === 'entrada' ? 'Nova Receita (+)' : 'Nova Despesa (-)';
       document.getElementById('btnSalvarFin').style.background = tipo === 'entrada' ? 'var(--success)' : 'var(--danger)';
       document.getElementById('finDataForm').value = obterDataLocalString(new Date());
+      document.getElementById('finDesc').value = ''; 
+      document.getElementById('finValor').value = '';
       document.getElementById('modalFinanceiro').classList.add('active');
     }
+    
     function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
 
     // === CLIENTES & PACOTES (COMPLETAMENTE RESTAURADO) ===
@@ -453,6 +465,7 @@
     }
 
     // === SERVIÇOS (RESTAURADO) ===
+    // === SERVIÇOS (COM EDIÇÃO) ===
     async function carregarServicos() {
       const { data } = await db.from('servicos').select('*').order('nome_servico');
       const lista = document.getElementById('servicos-list'); lista.innerHTML = '';
@@ -461,23 +474,36 @@
       if(!data || data.length === 0) { lista.innerHTML = '<p style="text-align:center;">Nenhum serviço.</p>'; return; }
       
       data.forEach(s => {
-        // Restaurei a renderização visual da lista de serviços na aba Serviços!
         lista.innerHTML += `
           <div class="list-item">
-            <div class="list-item-header">
+            <div class="list-item-header" style="align-items: center;">
               <div class="list-info"><h4>${s.nome_servico}</h4><p>${s.duracao_minutos} min</p></div>
-              <div class="badge">R$ ${s.preco}</div>
+              <div class="serv-actions">
+                <div class="badge">R$ ${s.preco}</div>
+                <button class="btn-mini" onclick="prepararModalServico('${s.id}', '${s.nome_servico}', ${s.preco}, ${s.duracao_minutos})"><i class="ri-edit-2-line"></i></button>
+              </div>
             </div>
           </div>`;
         select.innerHTML += `<option value="${s.id}">${s.nome_servico} - R$ ${s.preco}</option>`;
       });
     }
 
+    function prepararModalServico(id = '', nome = '', preco = '', tempo = '60') {
+      document.getElementById('servId').value = id;
+      document.getElementById('servNome').value = nome;
+      document.getElementById('servPreco').value = preco;
+      document.getElementById('servTempo').value = tempo;
+      document.getElementById('modalServico').classList.add('active');
+    }
+
     async function salvarServico(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSalvarServico'); btn.innerText = 'Salvando...'; btn.disabled = true;
+      const id = document.getElementById('servId').value;
+      const dados = { nome_servico: document.getElementById('servNome').value, preco: document.getElementById('servPreco').value, duracao_minutos: document.getElementById('servTempo').value };
       try {
-        await db.from('servicos').insert([{ nome_servico: document.getElementById('servNome').value, preco: document.getElementById('servPreco').value, duracao_minutos: document.getElementById('servTempo').value }]);
+        if (id) await db.from('servicos').update(dados).eq('id', id);
+        else await db.from('servicos').insert([dados]);
         fecharModais(); e.target.reset(); carregarServicos(); 
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar'; btn.disabled = false; }
     }
@@ -663,6 +689,33 @@
       }
     }
 
+   
+      const saldo = totEntrada - totSaida;
+      document.getElementById('finTotEntrada').innerText = `R$ ${totEntrada.toFixed(2).replace('.',',')}`;
+      document.getElementById('finTotSaida').innerText = `R$ ${totSaida.toFixed(2).replace('.',',')}`;
+      document.getElementById('finTotSaldo').innerText = `R$ ${saldo.toFixed(2).replace('.',',')}`;
+    }
+
+  
+function prepararModalFinEdit(id, tipo, desc, valor, dataMov) {
+      document.getElementById('finId').value = id;
+      document.getElementById('finTipo').value = tipo;
+      document.getElementById('modalFinTitle').innerText = 'Editar Movimentação';
+      document.getElementById('btnSalvarFin').style.background = 'var(--primary)';
+      document.getElementById('finDesc').value = desc;
+      document.getElementById('finValor').value = valor;
+      document.getElementById('finDataForm').value = dataMov;
+      document.getElementById('modalFinanceiro').classList.add('active');
+    }
+
+    async function excluirTransacao(id) {
+      if(confirm('Tem certeza que deseja apagar este lançamento do caixa? O saldo será recalculado.')) {
+        try { await db.from('financeiro').delete().eq('id', id); carregarFinanceiro(); } 
+        catch(err) { alert("Erro ao excluir: " + err.message); }
+      }
+    }
+
+    // === CARREGAR O FINANCEIRO COM BOTÕES ===
     async function carregarFinanceiro() {
       const dataInicio = document.getElementById('finDataInicio').value;
       const dataFim = document.getElementById('finDataFim').value;
@@ -686,11 +739,17 @@
           const corTxt = mov.tipo === 'entrada' ? 'var(--success)' : 'var(--danger)';
           const sinal = mov.tipo === 'entrada' ? '+' : '-';
           const dataBR = new Date(mov.data_movimento + 'T00:00:00').toLocaleDateString('pt-BR');
+          const descSafe = mov.descricao.replace(/'/g, "&apos;"); // Proteção contra aspas
 
           lista.innerHTML += `
-            <div class="fin-item">
-              <div><div class="fin-desc">${icone} ${mov.descricao}</div><div class="fin-data">${dataBR}</div></div>
-              <div class="fin-valor" style="color:${corTxt}">${sinal} R$ ${valNum.toFixed(2)}</div>
+            <div class="fin-item" style="flex-wrap: wrap; gap: 10px;">
+              <div style="flex: 1;"><div class="fin-desc">${icone} ${mov.descricao}</div><div class="fin-data">${dataBR}</div></div>
+              <div class="fin-valor" style="color:${corTxt}; text-align: right;">${sinal} R$ ${valNum.toFixed(2)}</div>
+              
+              <div class="fin-actions" style="width: 100%; justify-content: flex-end; margin-top: 5px;">
+                <button class="btn-mini" onclick="prepararModalFinEdit('${mov.id}', '${mov.tipo}', '${descSafe}', ${valNum}, '${mov.data_movimento}')"><i class="ri-edit-2-line"></i></button>
+                <button class="btn-mini del" onclick="excluirTransacao('${mov.id}')"><i class="ri-delete-bin-line"></i></button>
+              </div>
             </div>`;
         });
       }
@@ -704,16 +763,20 @@
     async function salvarTransacao(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSalvarFin'); btn.innerText = 'Salvando...'; btn.disabled = true;
+      const id = document.getElementById('finId').value;
+      const dados = { tipo: document.getElementById('finTipo').value, descricao: document.getElementById('finDesc').value, valor: document.getElementById('finValor').value, data_movimento: document.getElementById('finDataForm').value };
       try {
-        const tipo = document.getElementById('finTipo').value;
-        const desc = document.getElementById('finDesc').value;
-        const valor = document.getElementById('finValor').value;
-        const dataForm = document.getElementById('finDataForm').value;
-
-        await db.from('financeiro').insert([{ tipo: tipo, descricao: desc, valor: valor, data_movimento: dataForm }]);
-        fecharModais(); e.target.reset(); carregarFinanceiro();
+        if (id) await db.from('financeiro').update(dados).eq('id', id);
+        else await db.from('financeiro').insert([dados]);
+        fecharModais(); e.target.reset(); document.getElementById('finId').value = ''; carregarFinanceiro();
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar Lançamento'; btn.disabled = false; }
     }
+  </script>
+</body>
+</html>
+
+
+    
   </script>
 </body>
 </html>
