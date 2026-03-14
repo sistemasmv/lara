@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>AppNail Pro - Agenda</title>
+  <title>Nail Pro - Agenda</title>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
+  <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="logo.png">
   <meta name="theme-color" content="#C53A7A"> 
+  
   
   <style>
     :root {
@@ -132,7 +134,7 @@
     <section class="list-container">
       <div class="list-item">
         <div class="list-item-header">
-            <div class="list-info"><h4>Sistema</h4><p>Versão 1.2.0 (Reagendamentos)</p></div>
+            <div class="list-info"><h4>Sistema</h4><p>Versão 1.2.1 (Correção Botões)</p></div>
             <i class="ri-check-line" style="color: green; font-size: 1.5rem;"></i>
         </div>
       </div>
@@ -295,7 +297,6 @@
       if(clientesGlobais.length === 0) { lista.innerHTML = '<p style="text-align:center;">Nenhum cliente.</p>'; return; }
 
       clientesGlobais.forEach(c => {
-        // Agora na aba clientes mostra apenas Nome, Whats e Botão Editar
         lista.innerHTML += `
           <div class="list-item">
             <div class="list-item-header" style="align-items: center;">
@@ -399,6 +400,7 @@
       data.forEach(app => {
         const horaFormatada = new Date(app.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         
+        // 1. Logica do Whatsapp e número limpo
         let linkWa = '#';
         let numLimpo = '';
         if(app.clientes.whatsapp) {
@@ -410,6 +412,18 @@
           }
         }
 
+        // 2. Lógica para construir o botão Whatsapp com segurança
+        let btnAvisarHTML = '';
+        if (linkWa !== '#') {
+          btnAvisarHTML = `<a href="${linkWa}" target="_blank" class="btn-action btn-action-wa"><i class="ri-whatsapp-line"></i> Avisar</a>`;
+        } else {
+          btnAvisarHTML = `<button class="btn-action btn-action-wa" onclick="alert('Cliente sem WhatsApp cadastrado.')" style="opacity: 0.6;"><i class="ri-whatsapp-line"></i> Sem Whats</button>`;
+        }
+
+        // 3. Segurança para nomes com aspas simples (ex: D'arc)
+        const nomeSeguro = app.clientes.nome.replace(/'/g, "&apos;");
+
+        // 4. Lógica de Pacotes
         let htmlPacoteAgenda = '';
         let saldoMao = app.clientes.saldo_mao || 0;
         let saldoPe = app.clientes.saldo_pe || 0;
@@ -423,7 +437,7 @@
           `;
         }
 
-        // Card com a nova Barra de Ações embaixo
+        // 5. Card Final com a Barra de Ações
         container.innerHTML += `
           <div class="list-item">
             <div class="list-item-header">
@@ -440,10 +454,8 @@
             ${htmlPacoteAgenda}
 
             <div class="agenda-actions">
-              <a href="${linkWa !== '#' ? linkWa : 'javascript:alert(\\'Cliente sem WhatsApp\\')'}" target="${linkWa !== '#' ? '_blank' : ''}" class="btn-action btn-action-wa">
-                <i class="ri-whatsapp-line"></i> Avisar
-              </a>
-              <button class="btn-action btn-action-edit" onclick="abrirModalReagendar('${app.id}', '${app.clientes.nome}', '${numLimpo}')">
+              ${btnAvisarHTML}
+              <button class="btn-action btn-action-edit" onclick="abrirModalReagendar('${app.id}', '${nomeSeguro}', '${numLimpo}')">
                 <i class="ri-calendar-event-line"></i> Reagendar
               </button>
               <button class="btn-action btn-action-del" onclick="cancelarAgendamento('${app.id}')">
@@ -473,7 +485,6 @@
       document.getElementById('reagendarWhats').value = whats;
       document.getElementById('reagendarNomeCliente').innerText = `Reagendando: ${nomeCliente}`;
       
-      // Coloca a data selecionada hoje como sugestão
       document.getElementById('reagendarData').value = dataFiltroAtual.toISOString().split('T')[0];
       
       document.getElementById('modalReagendamento').classList.add('active');
@@ -490,14 +501,12 @@
       const dataHoraIso = new Date(`${novaData}T${novaHora}:00`).toISOString();
 
       try {
-        // Atualiza no banco
         await db.from('agendamentos').update({ data_hora: dataHoraIso }).eq('id', idApp);
         
         fecharModais();
         e.target.reset();
-        carregarAgendamentosPorData(dataFiltroAtual); // Recarrega a tela
+        carregarAgendamentosPorData(dataFiltroAtual);
 
-        // Avisa no WhatsApp se tiver número
         if(whats && whats.length >= 10) {
           const dataExtenso = new Date(`${novaData}T${novaHora}:00`).toLocaleDateString('pt-BR');
           const msg = encodeURIComponent(`Olá! Seu horário foi reagendado com sucesso para ${dataExtenso} às ${novaHora}. Te aguardo!`);
@@ -514,7 +523,7 @@
       if(confirm('Tem certeza que deseja cancelar e apagar este agendamento?')) {
         try {
           await db.from('agendamentos').delete().eq('id', idApp);
-          carregarAgendamentosPorData(dataFiltroAtual); // Recarrega a lista
+          carregarAgendamentosPorData(dataFiltroAtual); 
         } catch(err) { alert("Erro ao cancelar: " + err.message); }
       }
     }
