@@ -268,9 +268,10 @@
         <div class="form-group"><label>WhatsApp</label><input type="tel" id="cliWhats" placeholder="(00) 00000-0000"></div>
         <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd;">
           <label style="font-weight: bold; color: var(--primary); margin-bottom: 10px; display: block;">🎁 Pacote / Créditos</label>
-          <div class="row">
-            <div class="form-group" style="margin-bottom:0;"><label>Qtd. Mão</label><input type="number" id="cliMao" value="0" min="0"></div>
-            <div class="form-group" style="margin-bottom:0;"><label>Qtd. Pé</label><input type="number" id="cliPe" value="0" min="0"></div>
+          <div class="row" style="flex-wrap: wrap;">
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Mão</label><input type="number" id="cliMao" value="0" min="0"></div>
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Pé</label><input type="number" id="cliPe" value="0" min="0"></div>
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Gel</label><input type="number" id="cliGel" value="0" min="0"></div>
           </div>
         </div>
         <button type="submit" class="btn-submit" id="btnSalvarCliente">Salvar Cliente</button>
@@ -448,10 +449,11 @@
           document.getElementById('cliWhats').value = cliente.whatsapp || "";
           document.getElementById('cliMao').value = cliente.saldo_mao || 0;
           document.getElementById('cliPe').value = cliente.saldo_pe || 0;
+          document.getElementById('cliGel').value = cliente.saldo_gel || 0;
         }
       } else {
         document.getElementById('cliNome').value = ""; document.getElementById('cliWhats').value = "";
-        document.getElementById('cliMao').value = "0"; document.getElementById('cliPe').value = "0";
+        document.getElementById('cliMao').value = "0"; document.getElementById('cliPe').value = "0"; document.getElementById('cliGel').value = "0";
       }
       if(id) document.getElementById('modalCliente').classList.add('active'); 
     }
@@ -464,7 +466,8 @@
         nome: document.getElementById('cliNome').value, 
         whatsapp: document.getElementById('cliWhats').value,
         saldo_mao: parseInt(document.getElementById('cliMao').value) || 0,
-        saldo_pe: parseInt(document.getElementById('cliPe').value) || 0
+        saldo_pe: parseInt(document.getElementById('cliPe').value) || 0,
+        saldo_gel: parseInt(document.getElementById('cliGel').value) || 0
       };
       try {
         if(cliId) await db.from('clientes').update(dadosCliente).eq('id', cliId); 
@@ -485,9 +488,10 @@
     
 
     async function usarPacote(id, tipo, saldoAtual) {
-      if(confirm(`Deseja descontar 1 ${tipo === 'mao' ? 'Mão' : 'Pé'} do pacote desta cliente?`)) {
+      let nomeTipo = tipo === 'mao' ? 'Mão' : (tipo === 'pe' ? 'Pé' : 'Esmaltação em Gel');
+      if(confirm(`Deseja descontar 1 ${nomeTipo} do pacote desta cliente?`)) {
         try {
-          const coluna = tipo === 'mao' ? 'saldo_mao' : 'saldo_pe';
+          const coluna = tipo === 'mao' ? 'saldo_mao' : (tipo === 'pe' ? 'saldo_pe' : 'saldo_gel');
           await db.from('clientes').update({ [coluna]: saldoAtual - 1 }).eq('id', id);
           carregarClientes(); carregarAgendamentosPorData(dataFiltroAtual); 
         } catch(e) { alert("Erro ao usar pacote: " + e.message); }
@@ -557,7 +561,7 @@
       const fimDia = new Date(dataBusca); fimDia.setHours(23,59,59,999);
 
       const { data, error } = await db.from('agendamentos')
-        .select('id, data_hora, status, clientes(id, nome, whatsapp, saldo_mao, saldo_pe), servicos(nome_servico, preco)')
+        .select('id, data_hora, status, clientes(id, nome, whatsapp, saldo_mao, saldo_pe, saldo_gel), servicos(nome_servico, preco)')
         .gte('data_hora', inicioDia.toISOString()).lte('data_hora', fimDia.toISOString()).order('data_hora', { ascending: true });
 
       if (error || !data || data.length === 0) {
@@ -595,12 +599,15 @@
         let htmlPacoteAgenda = '';
         let saldoMao = app.clientes ? (app.clientes.saldo_mao || 0) : 0;
         let saldoPe = app.clientes ? (app.clientes.saldo_pe || 0) : 0;
-        if (saldoMao > 0 || saldoPe > 0) {
+        let saldoGel = app.clientes ? (app.clientes.saldo_gel || 0) : 0;
+
+        if (saldoMao > 0 || saldoPe > 0 || saldoGel > 0) {
           htmlPacoteAgenda = `
             <div class="pacote-card">
               <div class="pacote-header"><i class="ri-vip-diamond-line"></i> Pacote Ativo</div>
-              ${saldoMao > 0 ? `<div class="pacote-item"><span>💅 Mão restam: <b>${saldoMao}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'mao', ${saldoMao})">- Usar 1</button></div>` : ''}
-              ${saldoPe > 0 ? `<div class="pacote-item"><span>👣 Pé restam: <b>${saldoPe}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'pe', ${saldoPe})">- Usar 1</button></div>` : ''}
+              ${saldoMao > 0 ? `<div class="pacote-item"><span>💅 Mão: <b>${saldoMao}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'mao', ${saldoMao})">- Usar</button></div>` : ''}
+              ${saldoPe > 0 ? `<div class="pacote-item"><span>👣 Pé: <b>${saldoPe}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'pe', ${saldoPe})">- Usar</button></div>` : ''}
+              ${saldoGel > 0 ? `<div class="pacote-item"><span>✨ Gel: <b>${saldoGel}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'gel', ${saldoGel})">- Usar</button></div>` : ''}
             </div>
           `;
         }
