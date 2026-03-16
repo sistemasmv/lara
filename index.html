@@ -63,7 +63,7 @@
     .date-ribbon { display: flex; overflow-x: auto; padding: 0 15px 15px 15px; gap: 10px; scrollbar-width: none; }
     .date-ribbon::-webkit-scrollbar { display: none; }
     .date-box { background: var(--surface); color: var(--text); min-width: 65px; padding: 10px 5px; border-radius: 12px; text-align: center; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; }
-    .date-box.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
+    .date-box.active { background: #DF5B91; color: white; border-color: #DF5B91; font-weight: bold; } /* Rosa um tom mais claro para destacar */
     .date-box .dia-semana { display: block; font-size: 0.75rem; margin-bottom: 4px; text-transform: uppercase; }
     .date-box .dia-mes { display: block; font-size: 1.1rem; }
 
@@ -428,7 +428,10 @@
           <div class="list-item">
             <div class="list-item-header" style="align-items: center;">
               <div class="list-info"><h4>${c.nome}</h4><p>${c.whatsapp || 'Sem número'}</p></div>
-              <button class="btn-edit-cli" onclick="prepararModalCliente('${c.id}')"><i class="ri-edit-2-line"></i></button>
+              <div class="serv-actions">
+                <button class="btn-mini" onclick="prepararModalCliente('${c.id}')"><i class="ri-edit-2-line"></i></button>
+                <button class="btn-mini del" onclick="excluirCliente('${c.id}')"><i class="ri-delete-bin-line"></i></button>
+              </div>
             </div>
           </div>`;
         select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
@@ -470,6 +473,17 @@
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar Cliente'; btn.disabled = false; }
     }
 
+
+    async function excluirCliente(id) {
+      if(confirm('Tem certeza que deseja excluir esta cliente?')) {
+        try { 
+          await db.from('clientes').delete().eq('id', id); 
+          carregarClientes(); 
+        } catch(err) { alert("Erro ao excluir: " + err.message); }
+      }
+    }
+    
+
     async function usarPacote(id, tipo, saldoAtual) {
       if(confirm(`Deseja descontar 1 ${tipo === 'mao' ? 'Mão' : 'Pé'} do pacote desta cliente?`)) {
         try {
@@ -496,6 +510,7 @@
               <div class="serv-actions">
                 <div class="badge">R$ ${s.preco}</div>
                 <button class="btn-mini" onclick="prepararModalServico('${s.id}', '${s.nome_servico}', ${s.preco}, ${s.duracao_minutos})"><i class="ri-edit-2-line"></i></button>
+                <button class="btn-mini del" onclick="excluirServico('${s.id}')"><i class="ri-delete-bin-line"></i></button>
               </div>
             </div>
           </div>`;
@@ -521,6 +536,16 @@
         else await db.from('servicos').insert([dados]);
         fecharModais(); e.target.reset(); carregarServicos(); 
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar'; btn.disabled = false; }
+    }
+
+
+    async function excluirServico(id) {
+      if(confirm('Tem certeza que deseja excluir este serviço?')) {
+        try { 
+          await db.from('servicos').delete().eq('id', id); 
+          carregarServicos(); 
+        } catch(err) { alert("Erro ao excluir: " + err.message); }
+      }
     }
 
     // === AGENDAMENTOS E AÇÕES ===
