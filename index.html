@@ -584,7 +584,9 @@
           numLimpo = app.clientes.whatsapp.replace(/\D/g, '');
           if(numLimpo.length >= 10) {
             const dataExtenso = dataBusca.toLocaleDateString('pt-BR');
-            const msg = encodeURIComponent(`Olá ${app.clientes.nome}, seu horário está agendado para ${dataExtenso} às ${hora}. Te aguardo!`);
+            const msg = encodeURIComponent(`Oi, gata! 💖. ${app.clientes.nome}, Passando para confirmar nosso horário para cuidar das suas unhas. <br>
+           📅 ${dataExtenso} <br>
+           ⏰ ${hora}. Até 😘`);
             linkWa = `https://wa.me/55${numLimpo}?text=${msg}`;
           }
         }
