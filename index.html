@@ -9,9 +9,7 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <meta name="theme-color" content="#C53A7A">
 
-      <!-- ==========================================LOGO NAV=============================================================-->
-
- <link rel="icon" type="image/png" href="logo.png">
+      <link rel="icon" type="image/png" href="logo.png">
 
 <link rel="apple-touch-icon" href="logo.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,10 +23,7 @@
   <script>
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 800) {}
   </script>
-    <!-- ==========================================LOGO NAV =============================================================-->
-  
-  
-  <style>
+    <style>
     :root {
       --primary: #C53A7A;
       --primary-dark: #A32D63;
@@ -63,7 +58,7 @@
     .date-ribbon { display: flex; overflow-x: auto; padding: 0 15px 15px 15px; gap: 10px; scrollbar-width: none; }
     .date-ribbon::-webkit-scrollbar { display: none; }
     .date-box { background: var(--surface); color: var(--text); min-width: 65px; padding: 10px 5px; border-radius: 12px; text-align: center; font-size: 0.85rem; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; }
-    .date-box.active { background: #DF5B91; color: white; border-color: #DF5B91; font-weight: bold; } /* Rosa um tom mais claro para destacar */
+    .date-box.active { background: #DF5B91; color: white; border-color: #DF5B91; font-weight: bold; }
     .date-box .dia-semana { display: block; font-size: 0.75rem; margin-bottom: 4px; text-transform: uppercase; }
     .date-box .dia-mes { display: block; font-size: 1.1rem; }
 
@@ -91,7 +86,8 @@
     /* Sistema de Pacotes */
     .pacote-card { margin-top: 12px; background: #FFF0F5; padding: 10px 12px; border-radius: 8px; width: 100%; border: 1px dashed var(--primary); }
     .pacote-header { font-size: 0.8rem; color: var(--primary); font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
-    .pacote-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 5px; }
+    .pacote-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-top: 5px; padding-bottom: 5px; border-bottom: 1px solid rgba(197, 58, 122, 0.1); }
+    .pacote-item:last-child { border-bottom: none; padding-bottom: 0; }
     .btn-usar { background: var(--primary); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.75rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(197, 58, 122, 0.2); transition: 0.2s; }
     .btn-usar:active { transform: scale(0.95); }
 
@@ -212,7 +208,7 @@
     <section class="list-container">
       <div class="list-item">
         <div class="list-item-header">
-            <div class="list-info"><h4>Sistema</h4><p>Versão 1.5.0 (Edições Inclusas)</p></div>
+            <div class="list-info"><h4>Sistema</h4><p>Versão 1.6.0 (Pacotes Completos)</p></div>
             <i class="ri-check-line" style="color: green; font-size: 1.5rem;"></i>
         </div>
       </div>
@@ -268,10 +264,13 @@
         <div class="form-group"><label>WhatsApp</label><input type="tel" id="cliWhats" placeholder="(00) 00000-0000"></div>
         <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd;">
           <label style="font-weight: bold; color: var(--primary); margin-bottom: 10px; display: block;">🎁 Pacote / Créditos</label>
-          <div class="row" style="flex-wrap: wrap;">
-            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Mão</label><input type="number" id="cliMao" value="0" min="0"></div>
-            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Pé</label><input type="number" id="cliPe" value="0" min="0"></div>
-            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Gel</label><input type="number" id="cliGel" value="0" min="0"></div>
+          <div class="row" style="flex-wrap: wrap; gap: 10px;">
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Mãos</label><input type="number" id="cliMao" value="0" min="0"></div>
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Pés</label><input type="number" id="cliPe" value="0" min="0"></div>
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Gel Mão</label><input type="number" id="cliGelMao" value="0" min="0"></div>
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Gel Pé</label><input type="number" id="cliGelPe" value="0" min="0"></div>
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Blindagem</label><input type="number" id="cliBlindagem" value="0" min="0"></div>
+            <div class="form-group" style="margin-bottom:0; flex: 1; min-width: 30%;"><label>Spa dos Pés</label><input type="number" id="cliSpa" value="0" min="0"></div>
           </div>
         </div>
         <button type="submit" class="btn-submit" id="btnSalvarCliente">Salvar Cliente</button>
@@ -401,7 +400,6 @@
         document.getElementById('modalCliente').classList.add('active'); 
       }
       else if(telaAtual === 'servicos') { 
-        // Garante que clica em "+" abra o modal VAZIO e não de edição
         document.getElementById('servId').value = "";
         document.getElementById('servNome').value = "";
         document.getElementById('servPreco').value = "";
@@ -449,11 +447,19 @@
           document.getElementById('cliWhats').value = cliente.whatsapp || "";
           document.getElementById('cliMao').value = cliente.saldo_mao || 0;
           document.getElementById('cliPe').value = cliente.saldo_pe || 0;
-          document.getElementById('cliGel').value = cliente.saldo_gel || 0;
+          document.getElementById('cliGelMao').value = cliente.saldo_gel_mao || 0;
+          document.getElementById('cliGelPe').value = cliente.saldo_gel_pe || 0;
+          document.getElementById('cliBlindagem').value = cliente.saldo_blindagem || 0;
+          document.getElementById('cliSpa').value = cliente.saldo_spa || 0;
         }
       } else {
         document.getElementById('cliNome').value = ""; document.getElementById('cliWhats').value = "";
-        document.getElementById('cliMao').value = "0"; document.getElementById('cliPe').value = "0"; document.getElementById('cliGel').value = "0";
+        document.getElementById('cliMao').value = "0"; 
+        document.getElementById('cliPe').value = "0"; 
+        document.getElementById('cliGelMao').value = "0";
+        document.getElementById('cliGelPe').value = "0";
+        document.getElementById('cliBlindagem').value = "0";
+        document.getElementById('cliSpa').value = "0";
       }
       if(id) document.getElementById('modalCliente').classList.add('active'); 
     }
@@ -467,7 +473,10 @@
         whatsapp: document.getElementById('cliWhats').value,
         saldo_mao: parseInt(document.getElementById('cliMao').value) || 0,
         saldo_pe: parseInt(document.getElementById('cliPe').value) || 0,
-        saldo_gel: parseInt(document.getElementById('cliGel').value) || 0
+        saldo_gel_mao: parseInt(document.getElementById('cliGelMao').value) || 0,
+        saldo_gel_pe: parseInt(document.getElementById('cliGelPe').value) || 0,
+        saldo_blindagem: parseInt(document.getElementById('cliBlindagem').value) || 0,
+        saldo_spa: parseInt(document.getElementById('cliSpa').value) || 0
       };
       try {
         if(cliId) await db.from('clientes').update(dadosCliente).eq('id', cliId); 
@@ -475,7 +484,6 @@
         fecharModais(); carregarClientes(); carregarAgendamentosPorData(dataFiltroAtual);
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar Cliente'; btn.disabled = false; }
     }
-
 
     async function excluirCliente(id) {
       if(confirm('Tem certeza que deseja excluir esta cliente?')) {
@@ -485,14 +493,22 @@
         } catch(err) { alert("Erro ao excluir: " + err.message); }
       }
     }
-    
 
     async function usarPacote(id, tipo, saldoAtual) {
-      let nomeTipo = tipo === 'mao' ? 'Mão' : (tipo === 'pe' ? 'Pé' : 'Esmaltação em Gel');
-      if(confirm(`Deseja descontar 1 ${nomeTipo} do pacote desta cliente?`)) {
+      const tiposPacote = {
+        'mao': { nome: 'Mãos', coluna: 'saldo_mao' },
+        'pe': { nome: 'Pés', coluna: 'saldo_pe' },
+        'gel_mao': { nome: 'Gel Mão', coluna: 'saldo_gel_mao' },
+        'gel_pe': { nome: 'Gel Pé', coluna: 'saldo_gel_pe' },
+        'blindagem': { nome: 'Blindagem', coluna: 'saldo_blindagem' },
+        'spa': { nome: 'Spa dos Pés', coluna: 'saldo_spa' }
+      };
+      
+      let config = tiposPacote[tipo];
+      
+      if(confirm(`Deseja descontar 1 "${config.nome}" do pacote desta cliente?`)) {
         try {
-          const coluna = tipo === 'mao' ? 'saldo_mao' : (tipo === 'pe' ? 'saldo_pe' : 'saldo_gel');
-          await db.from('clientes').update({ [coluna]: saldoAtual - 1 }).eq('id', id);
+          await db.from('clientes').update({ [config.coluna]: saldoAtual - 1 }).eq('id', id);
           carregarClientes(); carregarAgendamentosPorData(dataFiltroAtual); 
         } catch(e) { alert("Erro ao usar pacote: " + e.message); }
       }
@@ -542,7 +558,6 @@
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar'; btn.disabled = false; }
     }
 
-
     async function excluirServico(id) {
       if(confirm('Tem certeza que deseja excluir este serviço?')) {
         try { 
@@ -560,8 +575,9 @@
       const inicioDia = new Date(dataBusca); inicioDia.setHours(0,0,0,0);
       const fimDia = new Date(dataBusca); fimDia.setHours(23,59,59,999);
 
+      // AQUI BUSCA TODAS AS NOVAS COLUNAS DO BANCO
       const { data, error } = await db.from('agendamentos')
-        .select('id, data_hora, status, clientes(id, nome, whatsapp, saldo_mao, saldo_pe, saldo_gel), servicos(nome_servico, preco)')
+        .select('id, data_hora, status, clientes(id, nome, whatsapp, saldo_mao, saldo_pe, saldo_gel_mao, saldo_gel_pe, saldo_blindagem, saldo_spa), servicos(nome_servico, preco)')
         .gte('data_hora', inicioDia.toISOString()).lte('data_hora', fimDia.toISOString()).order('data_hora', { ascending: true });
 
       if (error || !data || data.length === 0) {
@@ -585,10 +601,10 @@
           if(numLimpo.length >= 10) {
             const dataExtenso = dataBusca.toLocaleDateString('pt-BR');
             const msg = encodeURIComponent(`Oi, gata! 💖. Passando para confirmar nosso horário para cuidar das suas unhas.
-           📅 ${dataExtenso}
-           ⏰ ${hora}.
-           Até 😘`);
-            linkWa = `https://wa.me/55${numLimpo}?text=${msg}`;
+  📅 ${dataExtenso}
+  ⏰ ${hora}.
+  Até 😘`);
+  linkWa = `https://wa.me/55${numLimpo}?text=${msg}`;
           }
         }
 
@@ -599,18 +615,25 @@
           btnAvisarHTML = `<button class="btn-action btn-action-wa" onclick="alert('Cliente sem WhatsApp cadastrado.')" style="opacity: 0.6;"><i class="ri-whatsapp-line"></i> Sem Whats</button>`;
         }
 
+        // LÓGICA DE EXIBIÇÃO DOS 6 PACOTES NA AGENDA
         let htmlPacoteAgenda = '';
-        let saldoMao = app.clientes ? (app.clientes.saldo_mao || 0) : 0;
-        let saldoPe = app.clientes ? (app.clientes.saldo_pe || 0) : 0;
-        let saldoGel = app.clientes ? (app.clientes.saldo_gel || 0) : 0;
+        let sMao = app.clientes ? (app.clientes.saldo_mao || 0) : 0;
+        let sPe = app.clientes ? (app.clientes.saldo_pe || 0) : 0;
+        let sGelMao = app.clientes ? (app.clientes.saldo_gel_mao || 0) : 0;
+        let sGelPe = app.clientes ? (app.clientes.saldo_gel_pe || 0) : 0;
+        let sBlind = app.clientes ? (app.clientes.saldo_blindagem || 0) : 0;
+        let sSpa = app.clientes ? (app.clientes.saldo_spa || 0) : 0;
 
-        if (saldoMao > 0 || saldoPe > 0 || saldoGel > 0) {
+        if (sMao > 0 || sPe > 0 || sGelMao > 0 || sGelPe > 0 || sBlind > 0 || sSpa > 0) {
           htmlPacoteAgenda = `
             <div class="pacote-card">
               <div class="pacote-header"><i class="ri-vip-diamond-line"></i> Pacote Ativo</div>
-              ${saldoMao > 0 ? `<div class="pacote-item"><span>💅 Mão: <b>${saldoMao}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'mao', ${saldoMao})">- Usar</button></div>` : ''}
-              ${saldoPe > 0 ? `<div class="pacote-item"><span>👣 Pé: <b>${saldoPe}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'pe', ${saldoPe})">- Usar</button></div>` : ''}
-              ${saldoGel > 0 ? `<div class="pacote-item"><span>✨ Gel: <b>${saldoGel}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'gel', ${saldoGel})">- Usar</button></div>` : ''}
+              ${sMao > 0 ? `<div class="pacote-item"><span>💅 Mãos: <b>${sMao}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'mao', ${sMao})">- Usar</button></div>` : ''}
+              ${sPe > 0 ? `<div class="pacote-item"><span>👣 Pés: <b>${sPe}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'pe', ${sPe})">- Usar</button></div>` : ''}
+              ${sGelMao > 0 ? `<div class="pacote-item"><span>✨ Gel Mão: <b>${sGelMao}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'gel_mao', ${sGelMao})">- Usar</button></div>` : ''}
+              ${sGelPe > 0 ? `<div class="pacote-item"><span>✨ Gel Pé: <b>${sGelPe}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'gel_pe', ${sGelPe})">- Usar</button></div>` : ''}
+              ${sBlind > 0 ? `<div class="pacote-item"><span>🛡️ Blindagem: <b>${sBlind}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'blindagem', ${sBlind})">- Usar</button></div>` : ''}
+              ${sSpa > 0 ? `<div class="pacote-item"><span>💆‍♀️ Spa dos Pés: <b>${sSpa}</b></span> <button class="btn-usar" onclick="usarPacote('${app.clientes.id}', 'spa', ${sSpa})">- Usar</button></div>` : ''}
             </div>
           `;
         }
@@ -735,7 +758,7 @@
 
     // === CONTROLE DE MODAL DO CAIXA E FINANCEIRO ===
     function abrirModalFin(tipo) {
-      document.getElementById('finId').value = ''; // Garante que é um NOVO lançamento
+      document.getElementById('finId').value = ''; 
       document.getElementById('finTipo').value = tipo;
       document.getElementById('modalFinTitle').innerText = tipo === 'entrada' ? 'Nova Receita (+)' : 'Nova Despesa (-)';
       document.getElementById('btnSalvarFin').style.background = tipo === 'entrada' ? 'var(--success)' : 'var(--danger)';
@@ -786,7 +809,7 @@
           const corTxt = mov.tipo === 'entrada' ? 'var(--success)' : 'var(--danger)';
           const sinal = mov.tipo === 'entrada' ? '+' : '-';
           const dataBR = new Date(mov.data_movimento + 'T00:00:00').toLocaleDateString('pt-BR');
-          const descSafe = mov.descricao.replace(/'/g, "&apos;"); // Proteção contra aspas
+          const descSafe = mov.descricao.replace(/'/g, "&apos;");
 
           lista.innerHTML += `
             <div class="fin-item" style="flex-wrap: wrap; gap: 10px;">
