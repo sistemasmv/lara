@@ -172,6 +172,12 @@
 
   <div id="view-clientes" class="view-section">
     <div class="default-header">Meus Clientes</div>
+    <div style="padding: 15px 20px 0 20px;">
+      <div style="background: var(--surface); padding: 10px 15px; border-radius: 8px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid var(--border);">
+        <i class="ri-search-line" style="color: var(--text-light); margin-right: 10px;"></i>
+        <input type="text" id="inputBuscaCliente" placeholder="Buscar por nome..." onkeyup="buscarCliente()" style="border: none; outline: none; width: 100%; font-size: 0.95rem; background: transparent; color: var(--text);">
+      </div>
+    </div>
     <section class="list-container" id="clientes-list"></section>
   </div>
 
@@ -208,7 +214,7 @@
     <section class="list-container">
       <div class="list-item">
         <div class="list-item-header">
-            <div class="list-info"><h4>Sistema</h4><p>Versão 1.6.0 (Pacotes Completos)</p></div>
+            <div class="list-info"><h4>Sistema</h4><p>Versão 1.7.0 (Busca de Clientes)</p></div>
             <i class="ri-check-line" style="color: green; font-size: 1.5rem;"></i>
         </div>
       </div>
@@ -415,15 +421,29 @@
       const { data } = await db.from('clientes').select('*').order('nome');
       clientesGlobais = data || []; 
       
-      const lista = document.getElementById('clientes-list');
-      lista.innerHTML = '';
+      // Renderiza a lista na tela de clientes
+      renderizarListaClientes(clientesGlobais);
+
+      // Preenche as opções do select no modal de agendamento
       const select = document.getElementById('agendaClienteSelect');
       select.innerHTML = '<option value="">Selecione a cliente...</option>';
-
-      if(clientesGlobais.length === 0) { lista.innerHTML = '<p style="text-align:center;">Nenhum cliente.</p>'; return; }
-
       clientesGlobais.forEach(c => {
-        lista.innerHTML += `
+        select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+      });
+    }
+
+    // Função que desenha a lista de clientes (separada para o filtro funcionar fácil)
+    function renderizarListaClientes(lista) {
+      const container = document.getElementById('clientes-list');
+      container.innerHTML = '';
+
+      if(lista.length === 0) { 
+        container.innerHTML = '<p style="text-align:center; color: var(--text-light);">Nenhum cliente encontrado.</p>'; 
+        return; 
+      }
+
+      lista.forEach(c => {
+        container.innerHTML += `
           <div class="list-item">
             <div class="list-item-header" style="align-items: center;">
               <div class="list-info"><h4>${c.nome}</h4><p>${c.whatsapp || 'Sem número'}</p></div>
@@ -433,8 +453,14 @@
               </div>
             </div>
           </div>`;
-        select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
       });
+    }
+
+    // Nova função do campo de busca
+    function buscarCliente() {
+      const termo = document.getElementById('inputBuscaCliente').value.toLowerCase();
+      const filtrados = clientesGlobais.filter(c => c.nome.toLowerCase().includes(termo));
+      renderizarListaClientes(filtrados);
     }
 
     function prepararModalCliente(id = null) {
@@ -481,6 +507,10 @@
       try {
         if(cliId) await db.from('clientes').update(dadosCliente).eq('id', cliId); 
         else await db.from('clientes').insert([dadosCliente]);
+        
+        // Limpa o input de busca ao salvar
+        document.getElementById('inputBuscaCliente').value = '';
+        
         fecharModais(); carregarClientes(); carregarAgendamentosPorData(dataFiltroAtual);
       } catch(err) { alert(err.message); } finally { btn.innerText = 'Salvar Cliente'; btn.disabled = false; }
     }
@@ -489,6 +519,7 @@
       if(confirm('Tem certeza que deseja excluir esta cliente?')) {
         try { 
           await db.from('clientes').delete().eq('id', id); 
+          document.getElementById('inputBuscaCliente').value = ''; // Limpa a busca
           carregarClientes(); 
         } catch(err) { alert("Erro ao excluir: " + err.message); }
       }
